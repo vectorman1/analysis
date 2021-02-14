@@ -36,7 +36,7 @@ func Migrate(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	err = db.AutoMigrate(&entity.Technical{})
+	err = db.AutoMigrate(&entity.TechnicalData{})
 	if err != nil {
 		return err
 	}

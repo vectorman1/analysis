@@ -8,7 +8,5 @@ type SymbolHandler struct {
 }
 
 func NewSymbolHandler(e *echo.Echo, symbolService *service.SymbolService) {
-	handler := SymbolHandler{
-		SymbolService: symbolService,
-	}
+
 }

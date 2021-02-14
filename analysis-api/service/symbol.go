@@ -40,8 +40,8 @@ func (s *SymbolService) CreateBatchFromExternal(syms []infrastructure.ExternalSy
 
 		minQuantity, _ := strconv.ParseFloat(es.MinTradedQuantity, 32)
 		sym := entity.Symbol{
-			Name:                 es.Instrument,
-			CompanyName:          es.Company,
+			Identifier:           es.Instrument,
+			Name:                 es.Company,
 			CurrencyID:           curr.ID,
 			ISIN:                 es.ISIN,
 			MinimumOrderQuantity: float32(minQuantity),

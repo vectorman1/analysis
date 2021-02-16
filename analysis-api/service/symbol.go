@@ -8,7 +8,8 @@ import (
 )
 
 type symbol interface {
-	CreateOrUpdateBatchFromExternal(syms []infrastructure.ExternalSymbol) error
+	CreateBatchFromExternal(syms []infrastructure.ExternalSymbol) error
+	Get(pageSize int, pageNumber int, orderBy string, asc bool) ([]entity.Symbol, error)
 }
 
 type SymbolService struct {
@@ -52,4 +53,8 @@ func (s *SymbolService) CreateBatchFromExternal(syms []infrastructure.ExternalSy
 	}
 
 	return s.symbolRepository.CreateBatch(&symbols)
+}
+
+func (s *SymbolService) Get(pageSize int, pageNumber int, orderBy string, asc bool) ([]entity.Symbol, error) {
+	return s.symbolRepository.Get(pageSize, pageNumber, orderBy, asc)
 }

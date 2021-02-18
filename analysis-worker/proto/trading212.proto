@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package protobuf;
+
+option go_package = "github.com/vectorman1/analysis/analysis-worker/proto";
+
+message Currency {
+  uint64 ID = 1;
+  string Code = 2;
+  string Name = 3;
+}
+
+message Technical {
+  uint64 ID = 1;
+}
+
+message Symbol {
+  uint64 ID = 1;
+  string ISIN = 2;
+  string Identifier = 3;
+  string Name = 4;
+  Currency Currency = 5;
+  float MinimumOrderQuantity = 6;
+  string MarketName = 7;
+  string MarketHoursGMT = 8;
+  Technical Technical = 9;
+  int64 CreatedAt = 11;
+  int64 UpdatedAt = 12;
+  int64 DeletedAt = 13;
+}
+
+message Symbols {
+  repeated Symbol Symbols = 1;
+}
+
+message GetRequest {
+}
+
+service Trading212Service {
+  rpc GetUpdatedSymbols (Symbols) returns (stream Symbol) {}
+  rpc GetSymbols (GetRequest) returns (stream Symbol) {}
+}

@@ -7,17 +7,19 @@ import (
 )
 import "github.com/markcheno/go-quote"
 
-type Yahoo interface {
+type YahooService interface {
+	GetQuote(symbol string, startDate string, endDate string)
 }
 
-type YahooService struct {
+type yahooService struct {
+	YahooService
 }
 
-func NewYahooService() *YahooService {
-	return &YahooService{}
+func NewYahooService() *yahooService {
+	return &yahooService{}
 }
 
-func (s *YahooService) GetQuote(symbol string, startDate string, endDate string) {
+func (s *yahooService) GetQuote(symbol string, startDate string, endDate string) {
 	q, _ := quote.NewQuoteFromYahoo(symbol, startDate, endDate, quote.Daily, true)
 	ts := techan.NewTimeSeries()
 

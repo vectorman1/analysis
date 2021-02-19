@@ -1,4 +1,4 @@
 package db
 
-type Technical interface {
+type TechnicalRepo interface {
 }

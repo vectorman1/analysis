@@ -9,8 +9,8 @@ import (
 )
 
 type Config struct {
-	MySqlConnectionString string `json:"my_sql_connection_string"`
-	JwtSigningSecret      string `json:"jwt_signing_secret"`
+	PostgreSQLConnString string `json:"my_sql_connection_string"`
+	JwtSigningSecret     string `json:"jwt_signing_secret"`
 }
 
 func GetConfig() (*Config, error) {

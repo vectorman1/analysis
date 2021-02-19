@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package protobuf;
 
-option go_package = "github.com/vectorman1/analysis/analysis-worker/proto";
+option go_package = "github.com/vectorman1/analysis/analysis-api/infrastructure/proto";
 
 message Currency {
   uint64 ID = 1;

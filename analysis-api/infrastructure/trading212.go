@@ -2,114 +2,80 @@ package infrastructure
 
 import (
 	"context"
-	"github.com/chromedp/chromedp"
 	"github.com/dystopia-systems/alaskalog"
-	"golang.org/x/net/html"
-	"strings"
+	"github.com/vectorman1/analysis/analysis-api/infrastructure/proto"
+	"github.com/vectorman1/analysis/analysis-api/service"
+	"io"
 	"time"
 )
 
-type Trading212 interface {
-	GetPublishedSymbols() ([]ExternalSymbol, error)
+type UpdateResult struct {
+	Success bool
 }
 
-type ExternalSymbol struct {
-	Instrument        string
-	Company           string
-	CurrencyCode      string
-	ISIN              string
-	MinTradedQuantity string
-	MarketName        string
-	MarketHoursGMT    string
+type trading212Service interface {
+	GetUpdatedSymbols() (chan bool, context.Context)
+	GetSymbols() error
 }
 
 type Trading212Service struct {
+	trading212Service
 	instrumentsLink          string
 	showMoreSelector         string
 	instrumentsTableSelector string
+	symbolsService           *service.SymbolService
+	rpcClient                *Rpc
 }
 
-func NewTrading212Service(instrumentsLink string, showMoreSelector string, instrumentsTableSelector string) *Trading212Service {
+func (s Trading212Service) New(
+	instrumentsLink string,
+	showMoreSelector string,
+	instrumentsTableSelector string,
+	symbolsService *service.SymbolService,
+	rpcClient *Rpc) *Trading212Service {
 	return &Trading212Service{
 		instrumentsLink:          instrumentsLink,
 		showMoreSelector:         showMoreSelector,
 		instrumentsTableSelector: instrumentsTableSelector,
+		symbolsService:           symbolsService,
+		rpcClient:                rpcClient,
 	}
 }
 
-func (s *Trading212Service) GetPublishedSymbols() ([]ExternalSymbol, error) {
-	ctx, c := chromedp.NewContext(
-		context.Background(),
-		chromedp.WithLogf(alaskalog.Logger.Infof),
-	)
+func (s *Trading212Service) GetUpdatedSymbols() (bool, context.Context) {
+	return false, nil
+}
+
+func (s *Trading212Service) GetSymbols() (bool, error) {
+	timeoutContext, c := context.WithTimeout(context.Background(), 15*time.Second)
 	defer c()
 
-	ctx, c = context.WithTimeout(ctx, 10*time.Second)
-	defer c()
-
-	var htmlRes string
-	err := chromedp.Run(ctx,
-		chromedp.Navigate(s.instrumentsLink),
-		chromedp.WaitVisible(s.showMoreSelector),
-		chromedp.Click(s.showMoreSelector),
-		chromedp.InnerHTML(s.instrumentsTableSelector, &htmlRes))
+	client := proto.NewTrading212ServiceClient(s.rpcClient.connection)
+	stream, err := client.GetSymbols(timeoutContext, &proto.GetRequest{})
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	externalInstruments, err := parseInstrumentsTable(htmlRes)
-	if err != nil {
-		return nil, err
-	}
-
-	return externalInstruments, nil
-}
-
-func parseInstrumentsTable(s string) ([]ExternalSymbol, error) {
-	node, err := html.Parse(strings.NewReader(s))
-	if err != nil {
-		return nil, err
-	}
-
-	var res []ExternalSymbol
-	res = traverseNodes(&res, node)
-
-	return res, nil
-}
-
-func traverseNodes(res *[]ExternalSymbol, n *html.Node) []ExternalSymbol {
-	if n == nil {
-		return *res
-	} else {
-		if n.Data == "div" {
-			for _, a := range n.Attr {
-				if a.Key == "id" && strings.Contains(a.Val, "equity-row-") {
-					instrumentName := n.FirstChild
-					companyName := instrumentName.NextSibling
-					currencyCode := companyName.NextSibling
-					isin := currencyCode.NextSibling
-					minTradedQuantity := isin.NextSibling
-					marketName := minTradedQuantity.NextSibling
-					marketHours := marketName.NextSibling
-
-					i := ExternalSymbol{
-						Instrument:        strings.TrimSpace(instrumentName.FirstChild.Data),
-						Company:           strings.TrimSpace(companyName.FirstChild.Data),
-						CurrencyCode:      strings.TrimSpace(currencyCode.FirstChild.Data),
-						ISIN:              strings.TrimSpace(isin.FirstChild.Data),
-						MinTradedQuantity: strings.TrimSpace(minTradedQuantity.FirstChild.Data),
-						MarketName:        strings.TrimSpace(marketName.FirstChild.Data),
-						MarketHoursGMT:    strings.TrimSpace(marketHours.FirstChild.Data),
-					}
-
-					*res = append(*res, i)
-				}
+	var protoSyms []*proto.Symbol
+	for {
+		resp, e := stream.Recv()
+		if e != nil {
+			if e != io.EOF {
+				alaskalog.Logger.Warnf("error while reading stream: %v", e.Error())
 			}
+			break
 		}
-
-		traverseNodes(res, n.FirstChild)
-		traverseNodes(res, n.NextSibling)
+		protoSyms = append(protoSyms, resp)
+		alaskalog.Logger.Infoln("received ", resp.Identifier)
 	}
 
-	return *res
+	if err := stream.CloseSend(); err != nil {
+		alaskalog.Logger.Warnf("error closing stream")
+	}
+
+	_, err = s.symbolsService.InsertBulk(&protoSyms)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

@@ -1,0 +1,134 @@
+syntax = "proto3";
+package v1.symbol_service;
+
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+import "models.proto";
+
+option go_package = "github.com/vectorman1/analysis-api/generated/symbol_service";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+  info: {
+    title: "Symbols Service";
+    version: "1.0";
+    contact: {
+      name: "Dystopia Systems";
+      url: "https://dystopia.systems";
+      email: "admin@dystopia.systems";
+    };
+  };
+  schemes: HTTPS;
+  consumes: "application/json";
+  produces: "application/json";
+  responses: {
+    key: "401";
+    value: {
+      description: "Returned when the request didn't or passed an invalid user token in the request headers.";
+      schema: {
+        json_schema: {
+          type: STRING;
+        }
+      }
+    }
+  }
+};
+
+message SymbolFilter {
+  uint64 page_size = 1;
+  uint64 page_number = 2;
+  string order = 3;
+  bool ascending = 4;
+}
+
+message ReadPagedSymbolRequest {
+  SymbolFilter filter = 1;
+}
+
+message ReadPagedSymbolResponse {
+  v1.Symbols symbols = 1;
+}
+
+// can get symbols either by ID or Identifier + ISIN
+message ReadSymbolRequest {
+  uint64 id = 1;
+}
+
+message ReadSymbolResponse {
+  v1.Symbol symbol = 1;
+}
+
+message UpdateSymbolRequest {
+  v1.Symbol symbol = 1;
+}
+
+message UpdateSymbolResponse {
+  enum status {
+    FAILED = 0;
+    SUCCESS = 1;
+  }
+}
+
+message DeleteSymbolRequest {
+  uint64 id = 1;
+}
+
+message DeleteSymbolResponse {
+  enum status {
+    FAILED = 0;
+    SUCCESS = 1;
+  }
+}
+
+message CreateSymbolRequest {
+  v1.Symbol symbol = 1;
+}
+
+message CreateSymbolResponse {
+  uint64 id = 1;
+}
+
+message PopulateSymbolRequest {
+}
+
+message PopulateSymbolResponse {
+  enum status {
+    FAILED = 0;
+    SUCCESS = 1;
+  }
+}
+
+service SymbolService {
+  rpc ReadPaged (ReadPagedSymbolRequest) returns (ReadPagedSymbolResponse) {
+    option (google.api.http) = {
+      post: "/v1/symbols/paged",
+      body: "*"
+    };
+  }
+  rpc Read (ReadSymbolRequest) returns (ReadSymbolResponse) {
+    option (google.api.http) = {
+      get: "/v1/symbols/{id}",
+    };
+  }
+  rpc Create (CreateSymbolRequest) returns (CreateSymbolResponse) {
+    option (google.api.http) = {
+      post: "/v1/symbols",
+      body: "*"
+    };
+  }
+  rpc Update (UpdateSymbolRequest) returns (UpdateSymbolResponse) {
+    option (google.api.http) = {
+      patch: "/v1/symbols/{symbol.id}",
+      body: "*"
+    };
+  }
+  rpc Delete (DeleteSymbolRequest) returns (DeleteSymbolResponse) {
+    option (google.api.http) = {
+      delete: "/v1/symbols/{id}"
+    };
+  }
+  rpc Populate (PopulateSymbolRequest) returns (PopulateSymbolResponse) {
+    option (google.api.http) = {
+      post: "/v1/symbols/populate",
+    };
+  }
+}

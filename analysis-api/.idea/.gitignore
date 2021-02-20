@@ -2,7 +2,7 @@
 /shelf/
 /workspace.xml
 # Datasource local storage ignored files
-/../../../:\analysis\.idea/dataSources/
+/../../../../../../:\CourseGO\git\coursego\10-grpc-todos\.idea/dataSources/
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/

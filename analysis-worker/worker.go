@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/vectorman1/analysis/analysis-worker/common"
-	"github.com/vectorman1/analysis/analysis-worker/proto"
-	"github.com/vectorman1/analysis/analysis-worker/service"
 	"github.com/dystopia-systems/alaskalog"
+	"github.com/vectorman1/analysis/analysis-worker/common"
+	"github.com/vectorman1/analysis/analysis-worker/generated/trading212_service"
+	"github.com/vectorman1/analysis/analysis-worker/service"
 	"google.golang.org/grpc"
 	"net"
 )
@@ -24,7 +24,7 @@ func main() {
 
 	s := grpc.NewServer(
 		grpc.Creds(tls))
-	proto.RegisterTrading212ServiceServer(s,
+	trading212_service.RegisterTrading212ServiceServer(s,
 		service.Trading212Service{}.New(
 			common.TRADING212_INSTRUMENTS_LINK,
 			common.TRADING212_SHOW_ALL_BUTTON_SELECTOR,

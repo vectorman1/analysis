@@ -6,9 +6,10 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/dystopia-systems/alaskalog"
 	"github.com/vectorman1/analysis/analysis-worker/common"
-	"github.com/vectorman1/analysis/analysis-worker/model"
-	"github.com/vectorman1/analysis/analysis-worker/proto"
+	"github.com/vectorman1/analysis/analysis-worker/generated/proto_models"
+	"github.com/vectorman1/analysis/analysis-worker/generated/trading212_service"
 	"golang.org/x/net/html"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"math"
 	"strconv"
 	"strings"
@@ -20,7 +21,7 @@ type Trading212Service struct {
 	instrumentsLink          string
 	showMoreSelector         string
 	instrumentsTableSelector string
-	proto.UnimplementedTrading212ServiceServer
+	trading212_service.UnimplementedTrading212ServiceServer
 }
 
 func (s Trading212Service) New(instrumentsLink string, showMoreSelector string, instrumentsTableSelector string) *Trading212Service {
@@ -31,7 +32,7 @@ func (s Trading212Service) New(instrumentsLink string, showMoreSelector string, 
 	}
 }
 
-func (s *Trading212Service) GetUpdatedSymbols(data *proto.Symbols, srv proto.Trading212Service_GetUpdatedSymbolsServer) error {
+func (s *Trading212Service) GetUpdatedSymbols(data *proto_models.Symbols, srv trading212_service.Trading212Service_GetUpdatedSymbolsServer) error {
 	ctx := srv.Context()
 	alaskalog.Logger.Infoln("got request")
 	for {
@@ -40,7 +41,7 @@ func (s *Trading212Service) GetUpdatedSymbols(data *proto.Symbols, srv proto.Tra
 			ctx.Done()
 		}
 
-		res := make(<-chan *proto.Symbol)
+		res := make(<-chan *proto_models.Symbol)
 		if data.Symbols == nil {
 			res = externalData
 		} else {
@@ -61,7 +62,7 @@ func (s *Trading212Service) GetUpdatedSymbols(data *proto.Symbols, srv proto.Tra
 	}
 }
 
-func (s *Trading212Service) GetSymbols(data *proto.GetRequest, srv proto.Trading212Service_GetSymbolsServer) error {
+func (s *Trading212Service) GetSymbols(data *trading212_service.GetRequest, srv trading212_service.Trading212Service_GetSymbolsServer) error {
 	res := pullAndParseTrading212Data(s.instrumentsLink, s.showMoreSelector, s.instrumentsTableSelector)
 
 	if res == nil {
@@ -78,19 +79,19 @@ func (s *Trading212Service) GetSymbols(data *proto.GetRequest, srv proto.Trading
 	return nil
 }
 
-func generateResult(newSymbolsChan <-chan *proto.Symbol, oldSymbols *proto.Symbols) <-chan *proto.Symbol {
+func generateResult(newSymbolsChan <-chan *proto_models.Symbol, oldSymbols *proto_models.Symbols) <-chan *proto_models.Symbol {
 	if oldSymbols.Symbols == nil {
 		return newSymbolsChan
 	} else {
-		var newSymbolsData []*proto.Symbol
+		var newSymbolsData []*proto_models.Symbol
 
 		for s := range newSymbolsChan {
 			newSymbolsData = append(newSymbolsData, s)
 		}
 
-		res := make(chan *proto.Symbol)
-		oldDeletedSyms := make(chan *proto.Symbol)
-		newAndUpdatedSyms := make(chan *proto.Symbol)
+		res := make(chan *proto_models.Symbol)
+		oldDeletedSyms := make(chan *proto_models.Symbol)
+		newAndUpdatedSyms := make(chan *proto_models.Symbol)
 
 		go func() {
 			defer close(oldDeletedSyms)
@@ -98,10 +99,10 @@ func generateResult(newSymbolsChan <-chan *proto.Symbol, oldSymbols *proto.Symbo
 			var wg sync.WaitGroup
 			for _, oldSym := range oldSymbols.Symbols {
 				wg.Add(1)
-				go func(oldSym *proto.Symbol) {
+				go func(oldSym *proto_models.Symbol) {
 					defer wg.Done()
 					if ok, _ := common.ContainsSymbol(oldSym.ISIN, oldSym.Identifier, newSymbolsData); !ok {
-						oldSym.DeletedAt = time.Now().Unix()
+						oldSym.DeletedAt = timestamppb.Now()
 						oldDeletedSyms <- oldSym
 					}
 				}(oldSym)
@@ -118,7 +119,7 @@ func generateResult(newSymbolsChan <-chan *proto.Symbol, oldSymbols *proto.Symbo
 					defer wg.Done()
 					for _, newSym := range newSymbolsData {
 						if ok, oldSym := common.ContainsSymbol(newSym.ISIN, newSym.Identifier, oldSymbols.Symbols); !ok {
-							newSym.CreatedAt = time.Now().Unix()
+							newSym.CreatedAt = timestamppb.Now()
 							newAndUpdatedSyms <- newSym
 						} else {
 							shouldUpdate := false
@@ -136,14 +137,15 @@ func generateResult(newSymbolsChan <-chan *proto.Symbol, oldSymbols *proto.Symbo
 							}
 							if oldSym.Currency.Code != newSym.Currency.Code {
 								shouldUpdate = true
-								oldSym.Currency = &proto.Currency{Code: newSym.Currency.Code}
+								oldSym.Currency = &proto_models.Currency{Code: newSym.Currency.Code}
 							}
 							if oldSym.MinimumOrderQuantity != newSym.MinimumOrderQuantity {
 								shouldUpdate = true
 								oldSym.MinimumOrderQuantity = newSym.MinimumOrderQuantity
 							}
 							if shouldUpdate {
-								oldSym.UpdatedAt = time.Now().Unix()
+								t := timestamppb.New(time.Now())
+								oldSym.UpdatedAt = t
 							}
 							newAndUpdatedSyms <- oldSym
 						}
@@ -166,7 +168,7 @@ func generateResult(newSymbolsChan <-chan *proto.Symbol, oldSymbols *proto.Symbo
 	}
 }
 
-func pullAndParseTrading212Data(instrumentsLink, showMoreSelector, instrumentsTableSelector string) <-chan *proto.Symbol {
+func pullAndParseTrading212Data(instrumentsLink, showMoreSelector, instrumentsTableSelector string) <-chan *proto_models.Symbol {
 	ctx, c := chromedp.NewContext(
 		context.Background(),
 		chromedp.WithLogf(alaskalog.Logger.Infof),
@@ -190,8 +192,8 @@ func pullAndParseTrading212Data(instrumentsLink, showMoreSelector, instrumentsTa
 	return parseHtmlToProtoSyms(htmlRes)
 }
 
-func parseHtmlToProtoSyms(htmlRes string) <-chan *proto.Symbol {
-	parsedProtoSyms := make(chan *proto.Symbol)
+func parseHtmlToProtoSyms(htmlRes string) <-chan *proto_models.Symbol {
+	parsedProtoSyms := make(chan *proto_models.Symbol)
 	rows := walkTable(htmlRes)
 
 	go func() {
@@ -214,7 +216,7 @@ func parseHtmlToProtoSyms(htmlRes string) <-chan *proto.Symbol {
 	return parsedProtoSyms
 }
 
-func getSymbolData(row []string) proto.Symbol {
+func getSymbolData(row []string) proto_models.Symbol {
 	instrumentName := strings.TrimSpace(row[0])
 	companyName := strings.TrimSpace(row[1])
 	currencyCode := strings.TrimSpace(row[2])
@@ -224,52 +226,17 @@ func getSymbolData(row []string) proto.Symbol {
 	marketName := strings.TrimSpace(row[5])
 	marketHours := strings.TrimSpace(row[6])
 
-	return proto.Symbol{
+	return proto_models.Symbol{
 		ISIN:                 isin,
 		Identifier:           instrumentName,
 		Name:                 companyName,
-		Currency:             &proto.Currency{
+		Currency:             &proto_models.Currency{
 			Code: currencyCode,
 		},
 		MinimumOrderQuantity: roundedMinQuantity,
 		MarketName:           marketName,
 		MarketHoursGMT:       marketHours,
 	}
-}
-
-func getExternalSymbols(rows <-chan []string) <-chan *model.ExternalSymbol {
-	res := make(chan *model.ExternalSymbol)
-	go func() {
-		defer close(res)
-		var wg sync.WaitGroup
-		for row := range rows {
-			wg.Add(1)
-			go func(row []string) {
-				defer wg.Done()
-				instrumentName := row[0]
-				companyName := row[1]
-				currencyCode := row[2]
-				isin := row[3]
-				minTradedQuantity := row[4]
-				marketName := row[5]
-				marketHours := row[6]
-
-				i := &model.ExternalSymbol{
-					Instrument:        strings.TrimSpace(instrumentName),
-					Company:           strings.TrimSpace(companyName),
-					CurrencyCode:      strings.TrimSpace(currencyCode),
-					ISIN:              strings.TrimSpace(isin),
-					MinTradedQuantity: strings.TrimSpace(minTradedQuantity),
-					MarketName:        strings.TrimSpace(marketName),
-					MarketHoursGMT:    strings.TrimSpace(marketHours),
-				}
-				res <- i
-			}(row)
-		}
-		wg.Wait()
-	}()
-
-	return res
 }
 
 func walkTable(htmlRes string) <-chan []string {

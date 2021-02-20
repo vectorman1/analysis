@@ -1,8 +1,6 @@
 package common
 
-import (
-	"fmt"
-)
+import "fmt"
 
 func FormatOrderQuery(attr string, asc bool) string {
 	var d string

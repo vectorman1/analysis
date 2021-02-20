@@ -1,0 +1,14 @@
+syntax = "proto3";
+package v1;
+
+option go_package = "github.com/vectorman1/analysis-api/generated/trading212_service";
+
+import "models.proto";
+
+message GetRequest {
+}
+
+service Trading212Service {
+  rpc GetUpdatedSymbols (v1.Symbols) returns (stream v1.Symbol) {}
+  rpc GetSymbols (GetRequest) returns (stream v1.Symbol) {}
+}

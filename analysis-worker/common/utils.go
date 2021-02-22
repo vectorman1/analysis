@@ -8,10 +8,9 @@ import (
 	"sync"
 )
 
-func ContainsSymbol(isin string, identifier string, arr []*proto_models.Symbol) (bool, *proto_models.Symbol) {
+func ContainsSymbol(uuid string, arr []*proto_models.Symbol) (bool, *proto_models.Symbol) {
 	for _, v := range arr {
-		if v.Identifier == identifier &&
-			v.ISIN == isin {
+		if v.Uuid == uuid {
 			return true, v
 		}
 	}

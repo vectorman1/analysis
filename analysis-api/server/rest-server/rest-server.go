@@ -3,11 +3,11 @@ package rest_server
 import (
 	"context"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/vectorman1/analysis/analysis-api/generated/symbol_service"
-	logger_grpc "github.com/vectorman1/analysis/analysis-api/middleware/logger-grpc"
+	cors_rest "github.com/vectorman1/analysis/analysis-api/middleware/cors-rest"
+
 	logger_rest "github.com/vectorman1/analysis/analysis-api/middleware/logger-rest"
-	tracer_rest "github.com/vectorman1/analysis/analysis-api/middleware/tracer-rest"
+
+	"github.com/vectorman1/analysis/analysis-api/middleware/http_rest"
 
 	"log"
 	"net/http"
@@ -15,6 +15,10 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/vectorman1/analysis/analysis-api/generated/symbol_service"
+	logger_grpc "github.com/vectorman1/analysis/analysis-api/middleware/logger-grpc"
+	tracer_rest "github.com/vectorman1/analysis/analysis-api/middleware/tracer-rest"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -24,20 +28,21 @@ func RunServer(ctx context.Context, grpcPort, httpPort string) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	mux := runtime.NewServeMux()
+	errorHandler := runtime.WithErrorHandler(http_rest.HandleMuxError)
+	mux := runtime.NewServeMux(errorHandler)
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
 	if err := symbol_service.RegisterSymbolServiceHandlerFromEndpoint(ctx, mux, "localhost:"+grpcPort, opts); err != nil {
-		//log.Fatalf("failed to start HTTP gateway: %v", err)
 		logger_grpc.Log.Fatal("failed to start HTTP gateway", zap.String("reason", err.Error()))
 	}
 
+	// configure CORS headers options
+	corsH := cors_rest.GetCORS()
+
 	srv := &http.Server{
 		Addr: ":" + httpPort,
-		//Handler: mux,
-		// add handler with middleware
-		Handler: tracer_rest.AddRequestID(
-			logger_rest.AddLogger(logger_grpc.Log, mux)),
+		Handler: corsH(tracer_rest.AddRequestID(
+			logger_rest.AddLogger(logger_grpc.Log, mux))),
 	}
 
 	// graceful shutdown

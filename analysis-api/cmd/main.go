@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/vectorman1/analysis/analysis-api/service"
+
+	"github.com/vectorman1/analysis/analysis-api/service/server"
+
 	"github.com/vectorman1/analysis/analysis-api/common"
 	"github.com/vectorman1/analysis/analysis-api/db"
 	logger_grpc "github.com/vectorman1/analysis/analysis-api/middleware/logger-grpc"
 	grpc_server "github.com/vectorman1/analysis/analysis-api/server/grpc-server"
 	rest_server "github.com/vectorman1/analysis/analysis-api/server/rest-server"
-	"github.com/vectorman1/analysis/analysis-api/service"
 )
 
 // RunServer runs gRPC grpc-server and HTTP gateway
@@ -54,7 +57,9 @@ func RunServer() error {
 	symbolsRepository := db.NewSymbolRepository(dbConnPool)
 	currencyRepository := db.NewCurrencyRepository(dbConnPool)
 
-	symbolsServiceServer := service.NewSymbolsServiceServer(rpcClient, symbolsRepository, currencyRepository)
+	symbolsService := service.NewSymbolsService(symbolsRepository, currencyRepository)
+
+	symbolsServiceServer := server.NewSymbolsServiceServer(rpcClient, symbolsService)
 
 	grpcServer := grpc_server.NewGRPCServer(ctx, config.GRPCPort, symbolsServiceServer)
 

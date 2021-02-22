@@ -69,13 +69,11 @@ func (s Trading212Service) RecalculateSymbols(srv trading212_service.Trading212S
 	alaskalog.Logger.Infoln(len(externalData), len(oldSymbols))
 	res := generateResult(externalData, oldSymbols)
 
-
 	for _, r := range res {
 		if err := srv.Send(r); err != nil {
 			alaskalog.Logger.Warnf("send error: %v", err)
 			break
 		}
-		alaskalog.Logger.Infoln(" sent: ", r.Symbol.Identifier, r.Symbol.Isin, r.Symbol.Uuid, r.Type)
 	}
 
 	return nil
@@ -93,16 +91,15 @@ func generateResult(newSymbols []*proto_models.Symbol, oldSymbols []*proto_model
 					Type:   trading212_service.RecalculateSymbolsResponse_CREATE,
 					Symbol: newSym,
 				}
+				continue
 			} else {
-				log.Println("collision: ", newSym)
-				log.Println("existing: ", unique[newSym.Uuid])
+				log.Println("collision on create: ", newSym)
+				log.Println("existing: ", unique[newSym.Uuid].Type, unique[newSym.Uuid])
 			}
 		} else {
 			// check if any fields from the new symbol are different from the old
 			shouldUpdate := false
-			if oldSym.Currency.Code != newSym.Currency.Code {
-				shouldUpdate = true
-			} else if oldSym.Name != newSym.Name {
+			if oldSym.Name != newSym.Name {
 				shouldUpdate = true
 			} else if oldSym.MinimumOrderQuantity != newSym.MinimumOrderQuantity {
 				shouldUpdate = true
@@ -120,8 +117,10 @@ func generateResult(newSymbols []*proto_models.Symbol, oldSymbols []*proto_model
 							Type:   trading212_service.RecalculateSymbolsResponse_UPDATE,
 							Symbol: newSym,
 						}
+					continue
 				} else {
-					log.Println("collision: ", newSym)
+					log.Println("collision on update: ", newSym)
+					log.Println("existing: ", unique[newSym.Uuid].Type, unique[newSym.Uuid])
 				}
 			} else {
 				if unique[newSym.Uuid] == nil {
@@ -130,8 +129,10 @@ func generateResult(newSymbols []*proto_models.Symbol, oldSymbols []*proto_model
 							Type:   trading212_service.RecalculateSymbolsResponse_IGNORE,
 							Symbol: newSym,
 						}
+					continue
 				} else {
-					log.Println("collision: ", newSym)
+					log.Println("collision on ignore: ", newSym)
+					log.Println("existing: ", unique[newSym.Uuid].Type, unique[newSym.Uuid])
 				}
 			}
 		}
@@ -147,6 +148,7 @@ func generateResult(newSymbols []*proto_models.Symbol, oldSymbols []*proto_model
 				}
 			} else {
 				log.Println("collision: ", oldSym)
+				log.Println("existing: ", unique[oldSym.Uuid].Type, unique[oldSym.Uuid])
 			}
 		}
 	}
@@ -227,6 +229,7 @@ func parseHtmlToProtoSyms(htmlRes string, cfg *common.Config) ([]*proto_models.S
 	return parsedProtoSyms, nil
 }
 
+// getSymbolData reads a row from the table and parses it into a proto struct
 func getSymbolData(row []string, cfg *common.Config) (*proto_models.Symbol, error) {
 	instrumentName := strings.TrimSpace(row[0])
 	companyName := strings.TrimSpace(row[1])
@@ -242,7 +245,7 @@ func getSymbolData(row []string, cfg *common.Config) (*proto_models.Symbol, erro
 		return nil, err
 	}
 
-	str := fmt.Sprintf("%s,%s", isin, instrumentName)
+	str := fmt.Sprintf("%s,%s,%s", isin, instrumentName, marketName)
 	u := uuid.NewV5(ns, str)
 	us := u.String()
 
@@ -260,6 +263,7 @@ func getSymbolData(row []string, cfg *common.Config) (*proto_models.Symbol, erro
 	}, nil
 }
 
+// walkTable recursively walks the table of instruments received and returns it as a splice of splices
 func walkTable(htmlRes string) ([][]string, error) {
 	doc, err := html.Parse(strings.NewReader(htmlRes))
 	if err != nil {

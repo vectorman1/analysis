@@ -2,13 +2,15 @@ package db
 
 import (
 	"github.com/Masterminds/squirrel"
+	"github.com/dystopia-systems/alaskalog"
 	"github.com/jackc/pgx"
 	"github.com/vectorman1/analysis/analysis-api/model"
 )
 
 type currencyRepository interface {
-	GetByCode(code string, c *pgx.ConnPool) (*model.Currency, error)
-	Create(curr *model.Currency, c *pgx.ConnPool) (uint, error)
+	GetByCode(code string) (*model.Currency, error)
+	GetOrCreate(code string) (*model.Currency, error)
+	Create(curr *model.Currency) (uint, error)
 }
 
 type CurrencyRepository struct {
@@ -43,6 +45,26 @@ func (r *CurrencyRepository) GetByCode(code string) (*model.Currency, error) {
 	}
 
 	return &res, nil
+}
+
+func (r *CurrencyRepository) GetOrCreate(code string) (*model.Currency, error) {
+	curr, err := r.GetByCode(code)
+	if err != nil {
+		newCurr := &model.Currency{}
+		newCurr.Code = code
+		newCurr.LongName = "temp name"
+
+		id, createErr := r.Create(newCurr)
+		if createErr != nil {
+			alaskalog.Logger.Warnf("failed creating currency: %v", err)
+			return nil, createErr
+		}
+
+		newCurr.ID = id
+		return newCurr, nil
+	} else {
+		return curr, nil
+	}
 }
 
 func (r *CurrencyRepository) Create(curr *model.Currency) (uint, error) {

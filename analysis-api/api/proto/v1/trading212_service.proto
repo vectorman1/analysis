@@ -5,10 +5,21 @@ option go_package = "github.com/vectorman1/analysis-api/generated/trading212_ser
 
 import "models.proto";
 
-message GetRequest {
+message GetSymbolsRequest {
+}
+
+message RecalculateSymbolsResponse {
+  enum responseType {
+    CREATE = 0;
+    UPDATE = 1;
+    DELETE = 2;
+    IGNORE = 3;
+  }
+  responseType type = 1;
+  v1.Symbol symbol = 2;
 }
 
 service Trading212Service {
-  rpc GetUpdatedSymbols (v1.Symbols) returns (stream v1.Symbol) {}
-  rpc GetSymbols (GetRequest) returns (stream v1.Symbol) {}
+  rpc RecalculateSymbols (stream v1.Symbol) returns (stream RecalculateSymbolsResponse) {}
 }
+

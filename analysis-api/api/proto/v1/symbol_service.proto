@@ -9,7 +9,7 @@ option go_package = "github.com/vectorman1/analysis-api/generated/symbol_service
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
   info: {
-    title: "Symbols Service";
+    title: "Symbol Service";
     version: "1.0";
     contact: {
       name: "Dystopia Systems";
@@ -34,8 +34,8 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
 };
 
 message SymbolFilter {
-  uint64 page_size = 1;
-  uint64 page_number = 2;
+  uint64 pageSize = 1;
+  uint64 pageNumber = 2;
   string order = 3;
   bool ascending = 4;
 }
@@ -97,38 +97,54 @@ message PopulateSymbolResponse {
   }
 }
 
+message RecalculateSymbolRequest {
+}
+
+message RecalculateSymbolResponse {
+  int64 itemsCreated = 1;
+  int64 itemsUpdated = 2;
+  int64 itemsDeleted = 3;
+  int64 itemsIgnored = 4;
+  int64 totalItems = 5;
+}
+
 service SymbolService {
   rpc ReadPaged (ReadPagedSymbolRequest) returns (ReadPagedSymbolResponse) {
     option (google.api.http) = {
-      post: "/v1/symbols/paged",
+      post: "/api/v1/symbols/paged",
       body: "*"
     };
   }
   rpc Read (ReadSymbolRequest) returns (ReadSymbolResponse) {
     option (google.api.http) = {
-      get: "/v1/symbols/{id}",
+      get: "/api/v1/symbols/{id}",
     };
   }
   rpc Create (CreateSymbolRequest) returns (CreateSymbolResponse) {
     option (google.api.http) = {
-      post: "/v1/symbols",
+      post: "/api/v1/symbols",
       body: "*"
     };
   }
   rpc Update (UpdateSymbolRequest) returns (UpdateSymbolResponse) {
     option (google.api.http) = {
-      patch: "/v1/symbols/{symbol.id}",
-      body: "*"
+      patch: "/api/v1/symbols/{symbol.id}",
+      body: "*",
     };
   }
   rpc Delete (DeleteSymbolRequest) returns (DeleteSymbolResponse) {
     option (google.api.http) = {
-      delete: "/v1/symbols/{id}"
+      delete: "/api/v1/symbols/{id}"
     };
   }
   rpc Populate (PopulateSymbolRequest) returns (PopulateSymbolResponse) {
     option (google.api.http) = {
-      post: "/v1/symbols/populate",
+      post: "/api/v1/symbols/populate",
+    };
+  }
+  rpc Recalculate (RecalculateSymbolRequest) returns (RecalculateSymbolResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/symbols/recalculate",
     };
   }
 }

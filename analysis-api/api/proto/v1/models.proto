@@ -9,24 +9,24 @@ option go_package = "github.com/vectorman1/analysis/analysis-api/generated/proto
 message Currency {
   uint64 id = 1;
   string code = 2;
-  string long_name = 3;
+  string longName = 3;
 }
 
 message Symbol {
   uint64 id = 1;
-  Currency currency = 2;
+  string uuid = 2;
+  Currency currency = 3;
 
-  uint64 history_id = 3;
-  string isin = 4;
-  string identifier = 5;
-  string name = 6;
-  float minimum_order_quantity = 7;
-  string market_name = 8;
-  string market_hours_gmt = 9;
+  string isin = 5;
+  string identifier = 6;
+  string name = 7;
+  float minimumOrderQuantity = 8;
+  string marketName = 9;
+  string marketHoursGmt = 10;
 
-  google.protobuf.Timestamp created_at = 10;
-  google.protobuf.Timestamp updated_at = 11;
-  google.protobuf.Timestamp deleted_at = 12;
+  google.protobuf.Timestamp createdAt = 11;
+  google.protobuf.Timestamp updatedAt = 12;
+  google.protobuf.Timestamp deletedAt = 13;
 }
 
 message Symbols {

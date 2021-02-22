@@ -27,7 +27,7 @@ func NewGRPCServer(ctx context.Context, port string, symbolsServiceServer symbol
 	}
 }
 
-// RunServer runs gRPC service to publish ToDo service
+// RunServer runs gRPC service to publish our services
 func (s *GRPCServer) Run() error {
 	listen, err := net.Listen("tcp", ":"+s.Port)
 	if err != nil {
@@ -35,7 +35,7 @@ func (s *GRPCServer) Run() error {
 	}
 
 	// add middleware
-	opts := middleware.AddLogging(logger_grpc.Log, nil)
+	opts := middleware.LoadMiddleware(logger_grpc.Log, nil)
 
 	server := grpc.NewServer(opts...)
 

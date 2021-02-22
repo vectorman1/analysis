@@ -2,13 +2,15 @@ package db
 
 import (
 	"github.com/Masterminds/squirrel"
+	"github.com/dystopia-systems/alaskalog"
 	"github.com/jackc/pgx"
-	"github.com/vectorman1/analysis/analysis-api/entity"
+	"github.com/vectorman1/analysis/analysis-api/model"
 )
 
 type currencyRepository interface {
-	GetByCode(code string, c *pgx.ConnPool) (*entity.Currency, error)
-	Create(curr *entity.Currency, c *pgx.ConnPool) (uint, error)
+	GetByCode(code string) (*model.Currency, error)
+	GetOrCreate(code string) (*model.Currency, error)
+	Create(curr *model.Currency) (uint, error)
 }
 
 type CurrencyRepository struct {
@@ -22,10 +24,10 @@ func NewCurrencyRepository(pgDb *pgx.ConnPool) *CurrencyRepository {
 	}
 }
 
-func (r *CurrencyRepository) GetByCode(code string) (*entity.Currency, error) {
+func (r *CurrencyRepository) GetByCode(code string) (*model.Currency, error) {
 	queryBuilder := squirrel.
 		Select("id, code, long_name").
-		From("currencies").
+		From("analysis.currencies").
 		Where(squirrel.Eq{"code": code}).
 		Limit(1).
 		PlaceholderFormat(squirrel.Dollar)
@@ -36,7 +38,7 @@ func (r *CurrencyRepository) GetByCode(code string) (*entity.Currency, error) {
 
 	rows := r.db.QueryRow(query, args...)
 
-	var res entity.Currency
+	var res model.Currency
 	err = rows.Scan(&res.ID, &res.Code, &res.LongName)
 	if err != nil {
 		return nil, err
@@ -45,9 +47,29 @@ func (r *CurrencyRepository) GetByCode(code string) (*entity.Currency, error) {
 	return &res, nil
 }
 
-func (r *CurrencyRepository) Create(curr *entity.Currency) (uint, error) {
+func (r *CurrencyRepository) GetOrCreate(code string) (*model.Currency, error) {
+	curr, err := r.GetByCode(code)
+	if err != nil {
+		newCurr := &model.Currency{}
+		newCurr.Code = code
+		newCurr.LongName = "temp name"
+
+		id, createErr := r.Create(newCurr)
+		if createErr != nil {
+			alaskalog.Logger.Warnf("failed creating currency: %v", err)
+			return nil, createErr
+		}
+
+		newCurr.ID = id
+		return newCurr, nil
+	} else {
+		return curr, nil
+	}
+}
+
+func (r *CurrencyRepository) Create(curr *model.Currency) (uint, error) {
 	queryBuilder := squirrel.
-		Insert("currencies").
+		Insert("analysis.currencies").
 		Columns("code, long_name").
 		Values(curr.Code, curr.LongName).
 		PlaceholderFormat(squirrel.Dollar)
@@ -57,35 +79,17 @@ func (r *CurrencyRepository) Create(curr *entity.Currency) (uint, error) {
 		return 0, err
 	}
 
+	conn, err := r.db.Acquire()
+	if err != nil {
+		return 0, err
+	}
+	defer conn.Close()
+
 	id := uint(0)
-	err = r.db.QueryRow(query+" RETURNING id;", args...).Scan(&id)
+	err = conn.QueryRow(query+" RETURNING id;", args...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
 
 	return id, nil
-}
-
-func (r *CurrencyRepository) BeginTransaction() (*pgx.Tx, error) {
-	tx, err := r.db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	return tx, nil
-}
-
-func (r *CurrencyRepository) RollbackTransaction(tx *pgx.Tx) error {
-	err := tx.Rollback()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *CurrencyRepository) CommitTransaction(tx *pgx.Tx) error {
-	err := tx.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
 }

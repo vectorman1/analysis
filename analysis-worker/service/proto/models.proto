@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/vectorman1/analysis/analysis-worker/generated/proto_models";
+
+message Currency {
+  uint64 id = 1;
+  string code = 2;
+  string longName = 3;
+}
+
+message Symbol {
+  uint64 id = 1;
+  string uuid = 2;
+  Currency currency = 3;
+
+  string isin = 5;
+  string identifier = 6;
+  string name = 7;
+  float minimumOrderQuantity = 8;
+  string marketName = 9;
+  string marketHoursGmt = 10;
+
+  google.protobuf.Timestamp createdAt = 11;
+  google.protobuf.Timestamp updatedAt = 12;
+  google.protobuf.Timestamp deletedAt = 13;
+}
+
+message Symbols {
+  repeated Symbol symbols = 1;
+}

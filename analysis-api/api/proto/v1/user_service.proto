@@ -1,0 +1,70 @@
+syntax="proto3";
+package v1.user_service;
+
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+option go_package = "github.com/vectorman1/analysis-api/generated/user_service";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+  info: {
+    title: "User Service";
+    version: "1.0";
+    contact: {
+      name: "Dystopia Systems";
+      url: "https://dystopia.systems";
+      email: "admin@dystopia.systems";
+    };
+  };
+  schemes: HTTPS;
+  consumes: "application/json";
+  produces: "application/json";
+  responses: {
+    key: "401";
+    value: {
+      description: "Returned when the request didn't or passed an invalid user token in the request headers.";
+      schema: {
+        json_schema: {
+          type: STRING;
+        }
+      }
+    }
+  }
+};
+
+message LoginRequest{
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse{
+  bool success = 1;
+  string token = 2;
+}
+
+message RegisterRequest{
+  string username = 1;
+  string password = 2;
+}
+
+message RegisterResponse{
+  bool success = 1;
+  string token = 2;
+}
+
+service UserService {
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/login",
+      body: "*",
+      response_body: "*"
+    };
+  }
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/register",
+      body: "*",
+      response_body: "*",
+    };
+  }
+}

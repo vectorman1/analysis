@@ -1,0 +1,7 @@
+.idea/
+
+generated/*
+certs/*
+api/swagger/v1/*
+
+config.json

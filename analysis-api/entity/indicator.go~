@@ -1,7 +1,0 @@
-package entity
-
-import "github.com/lib/pq"
-
-type Indicator struct {
-	MovingAverages pq.
-}

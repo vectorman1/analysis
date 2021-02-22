@@ -2,16 +2,15 @@ package common
 
 import (
 	"crypto/tls"
-	"github.com/vectorman1/analysis/analysis-worker/proto"
+	"github.com/vectorman1/analysis/analysis-worker/generated/proto_models"
 	"golang.org/x/net/html"
 	"google.golang.org/grpc/credentials"
 	"sync"
 )
 
-func ContainsSymbol(isin string, identifier string, arr []*proto.Symbol) (bool, *proto.Symbol) {
+func ContainsSymbol(uuid string, arr []*proto_models.Symbol) (bool, *proto_models.Symbol) {
 	for _, v := range arr {
-		if v.Identifier == identifier &&
-			v.ISIN == isin {
+		if v.Uuid == uuid {
 			return true, v
 		}
 	}
@@ -19,7 +18,7 @@ func ContainsSymbol(isin string, identifier string, arr []*proto.Symbol) (bool, 
 }
 
 func LoadTLSCredentials() (credentials.TransportCredentials, error) {
-	serverCert, err := tls.LoadX509KeyPair("proto/certs/server-cert.pem", "proto/certs/server-key.pem")
+	serverCert, err := tls.LoadX509KeyPair("certs/server-cert.pem", "certs/server-key.pem")
 	if err != nil {
 		return nil, err
 	}

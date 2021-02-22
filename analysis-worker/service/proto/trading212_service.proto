@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "github.com/vectorman1/analysis/analysis-worker/generated/trading212_service";
+
+import "models.proto";
+
+message GetSymbolsRequest {
+}
+
+message RecalculateSymbolsResponse {
+  enum responseType {
+    CREATE = 0;
+    UPDATE = 1;
+    DELETE = 2;
+    IGNORE = 3;
+  }
+  responseType type = 1;
+  v1.Symbol symbol = 2;
+}
+
+service Trading212Service {
+  rpc RecalculateSymbols (stream v1.Symbol) returns (stream RecalculateSymbolsResponse) {}
+}

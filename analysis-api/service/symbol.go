@@ -1,153 +1,210 @@
 package service
 
 import (
-	"github.com/dystopia-systems/alaskalog"
-	"github.com/jackc/pgx/pgtype"
-	"github.com/vectorman1/analysis/analysis-api/db"
-	"github.com/vectorman1/analysis/analysis-api/entity"
-	"github.com/vectorman1/analysis/analysis-api/infrastructure/proto"
+	"context"
+	"fmt"
 	"sync"
 	"time"
+
+	"github.com/jackc/pgx"
+
+	"github.com/jackc/pgx/pgtype"
+	"github.com/vectorman1/analysis/analysis-api/db"
+	"github.com/vectorman1/analysis/analysis-api/generated/proto_models"
+	"github.com/vectorman1/analysis/analysis-api/generated/symbol_service"
+	"github.com/vectorman1/analysis/analysis-api/generated/trading212_service"
+	"github.com/vectorman1/analysis/analysis-api/model"
 )
 
-type symbolService interface {
-	Get(pageSize int, pageNumber int, orderBy string, asc bool) (*[]entity.Symbol, error)
-	GetBulk() (*proto.Symbol, error)
-	UpdateBulk(in <-chan *proto.Symbol) (error, int64)
+type symbolsService interface {
+	// repo methods
+	GetPaged(ctx context.Context, req *symbol_service.ReadPagedSymbolRequest) (*[]*proto_models.Symbol, error)
+	GetByISINAndName(isin, name string) (*proto_models.Symbol, error)
+	InsertBulk(timeoutContext context.Context, symbols []*proto_models.Symbol) (bool, error)
+	// service methods
+	ProcessRecalculationResponse(
+		input *chan *trading212_service.RecalculateSymbolsResponse,
+		responseChan *chan *symbol_service.RecalculateSymbolResponse,
+		errChan *chan error)
+	symbolDataToEntity(in *[]*proto_models.Symbol) ([]*model.Symbol, error)
 }
 
-type SymbolService struct {
-	symbolService
-	symbolRepository   *db.SymbolRepository
+type SymbolsService struct {
+	symbolsService
 	currencyRepository *db.CurrencyRepository
+	symbolsRepository  *db.SymbolRepository
 }
 
-func NewSymbolService(symbolRepository *db.SymbolRepository, currencyRepository *db.CurrencyRepository) *SymbolService {
-	return &SymbolService{
-		symbolRepository:   symbolRepository,
-		currencyRepository: currencyRepository,
+func NewSymbolsService(symbolsRepository *db.SymbolRepository, currencyRepository *db.CurrencyRepository) *SymbolsService {
+	return &SymbolsService{symbolsRepository: symbolsRepository, currencyRepository: currencyRepository}
+}
+
+func (s *SymbolsService) GetPaged(ctx context.Context, req *symbol_service.ReadPagedSymbolRequest) (*[]*proto_models.Symbol, error) {
+	var res []*proto_models.Symbol
+	syms, err := s.symbolsRepository.GetPaged(ctx, req)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func (s *SymbolService) Get(pageSize int, pageNumber int, orderBy string, asc bool) (*[]entity.Symbol, error) {
-	return s.symbolRepository.GetPaged(pageSize, pageNumber, orderBy, asc)
-}
-
-func (s *SymbolService) GetBulk() *proto.Symbols {
-	symbolEntities := s.symbolRepository.GetBulkAsSymbolData()
-
-	syms := proto.Symbols{Symbols: []*proto.Symbol{}}
-	var wg sync.WaitGroup
-	for eSym := range symbolEntities {
-		wg.Add(1)
-		go func(eSym *entity.Symbol, wg *sync.WaitGroup) {
-			defer wg.Done()
-			protoSym := proto.Symbol{
-				ID:         uint64(eSym.ID),
-				CurrencyID: uint64(eSym.CurrencyID),
-				Currency: &proto.Currency{
-					ID:       uint64(eSym.Currency.ID),
-					Code:     eSym.Currency.Code,
-					LongName: eSym.Currency.LongName,
-				},
-				ISIN:                 eSym.ISIN,
-				Identifier:           eSym.Identifier,
-				Name:                 eSym.Name,
-				MinimumOrderQuantity: eSym.MinimumOrderQuantity.Float,
-				MarketName:           eSym.MarketName,
-				MarketHoursGMT:       eSym.MarketHoursGMT,
-				CreatedAt:            eSym.CreatedAt.Time.Unix(),
-				UpdatedAt:            eSym.UpdatedAt.Time.Unix(),
-			}
-			if eSym.DeletedAt.Status != pgtype.Null {
-				protoSym.DeletedAt = eSym.DeletedAt.Time.Unix()
-			} else {
-				protoSym.DeletedAt = 0
-			}
-
-			syms.Symbols = append(syms.Symbols, &protoSym)
-		}(eSym, &wg)
+	for _, sym := range *syms {
+		res = append(res, sym.ToProtoObject())
 	}
-	wg.Wait()
 
-	return &syms
+	return &res, nil
 }
 
-func (s *SymbolService) InsertBulk(in *[]*proto.Symbol) (bool, error) {
-	symbols := s.symbolDataToEntity(in)
-	ok, err := s.symbolRepository.InsertBulk(symbols)
-	return ok, err
+func (s *SymbolsService) InsertBulk(timeoutContext context.Context, symbols []*proto_models.Symbol) (bool, error) {
+	entities, err := s.symbolDataToEntity(&symbols)
+	if err != nil {
+		return false, err
+	}
+
+	// begin a transaction for the whole of the insert
+	tx, err := s.symbolsRepository.BeginTx(&timeoutContext, &pgx.TxOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	// insert items in batches
+	_, err = s.symbolsRepository.InsertBulk(tx, &timeoutContext, entities)
+	if err != nil {
+		err2 := tx.RollbackEx(timeoutContext)
+		if err2 != nil {
+			return false, fmt.Errorf("%v %v", err, err2)
+		}
+		return false, err
+	}
+
+	// commit insertion
+	err = tx.CommitEx(timeoutContext)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
-func (s *SymbolService) symbolDataToEntity(in *[]*proto.Symbol) []*entity.Symbol {
-	var result []*entity.Symbol
+func (s *SymbolsService) ProcessRecalculationResponse(
+	input []*trading212_service.RecalculateSymbolsResponse,
+	ctx *context.Context) (*symbol_service.RecalculateSymbolResponse, error) {
+
+	var createSymbols []*proto_models.Symbol
+	var updateSymbols []*proto_models.Symbol
+	var deleteSymbols []*proto_models.Symbol
+
+	itemsIgnored := int64(0)
+	for _, res := range input {
+		switch res.Type {
+		case trading212_service.RecalculateSymbolsResponse_CREATE:
+			createSymbols = append(createSymbols, res.Symbol)
+		case trading212_service.RecalculateSymbolsResponse_UPDATE:
+			updateSymbols = append(updateSymbols, res.Symbol)
+		case trading212_service.RecalculateSymbolsResponse_DELETE:
+			deleteSymbols = append(deleteSymbols, res.Symbol)
+		case trading212_service.RecalculateSymbolsResponse_IGNORE:
+			itemsIgnored++
+		}
+	}
+
+	tctx, c := context.WithTimeout(*ctx, 5*time.Second)
+	defer c()
+
+	tx, err := s.symbolsRepository.BeginTx(&tctx, &pgx.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// create new symbols
+	createEntities, err := s.symbolDataToEntity(&createSymbols)
+	if err != nil {
+		tx.RollbackEx(tctx)
+		return nil, err
+	}
+	temp := make(map[string][]*model.Symbol)
+	for _, sym := range createEntities {
+		var u string
+		_ = sym.Uuid.AssignTo(&u)
+		temp[u] = append(temp[u], sym)
+	}
+	_, err = s.symbolsRepository.InsertBulk(tx, &tctx, createEntities)
+	if err != nil {
+		tx.RollbackEx(tctx)
+		return nil, err
+	}
+
+	// delete entities
+	deleteEntities, err := s.symbolDataToEntity(&deleteSymbols)
+	if err != nil {
+		tx.RollbackEx(tctx)
+		return nil, err
+	}
+	_, err = s.symbolsRepository.DeleteBulk(tx, &tctx, deleteEntities)
+	if err != nil {
+		tx.RollbackEx(tctx)
+		return nil, err
+	}
+
+	// update entities
+	updateEntities, err := s.symbolDataToEntity(&updateSymbols)
+	if err != nil {
+		tx.RollbackEx(tctx)
+		return nil, err
+	}
+	_, err = s.symbolsRepository.UpdateBulk(tx, &tctx, updateEntities)
+	if err != nil {
+		tx.RollbackEx(tctx)
+		return nil, err
+	}
+
+	err = tx.CommitEx(tctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &symbol_service.RecalculateSymbolResponse{
+		ItemsCreated: int64(len(createSymbols)),
+		ItemsUpdated: int64(len(updateSymbols)),
+		ItemsDeleted: int64(len(deleteSymbols)),
+		ItemsIgnored: itemsIgnored,
+		TotalItems:   int64(len(input)),
+	}, nil
+}
+
+func (s *SymbolsService) symbolDataToEntity(in *[]*proto_models.Symbol) ([]*model.Symbol, error) {
+	var result []*model.Symbol
 	var wg sync.WaitGroup
-
-	queue := make(chan *entity.Symbol, 1)
 
 	wg.Add(len(*in))
 	for _, sym := range *in {
-		go func(protoSym *proto.Symbol) {
-			e := entity.Symbol{}
-			if protoSym.CurrencyID == 0 {
-				curr, err := s.currencyRepository.GetByCode(protoSym.Currency.Code)
-				if err != nil {
-					c := &entity.Currency{}
-					c.Code = protoSym.Currency.Code
-					c.LongName = "temp name"
+		e := model.Symbol{}
 
-					id, createErr := s.currencyRepository.Create(c)
-					if createErr != nil {
-						alaskalog.Logger.Warnf("failed creating currency: %v", err)
-						return
-					}
-					c.ID = id
-					e.CurrencyID = c.ID
-				} else {
-					e.CurrencyID = curr.ID
-				}
-			} else {
-				e.CurrencyID = uint(protoSym.CurrencyID)
-			}
-			if protoSym.ID != 0 {
-				e.ID = uint(protoSym.ID)
-			}
+		// get or create the currency of the symbol
+		curr, err := s.currencyRepository.GetOrCreate(sym.Currency.Code)
+		if err != nil {
+			return nil, err
+		}
 
-			e.ISIN = protoSym.ISIN
-			e.Identifier = protoSym.Identifier
-			e.Name = protoSym.Name
-			var moq pgtype.Float4
-			_ = moq.Set(protoSym.MinimumOrderQuantity)
-			e.MinimumOrderQuantity = moq
-			e.MarketName = protoSym.MarketName
-			e.MarketHoursGMT = protoSym.MarketHoursGMT
+		e.Uuid = pgtype.UUID{}
+		err = e.Uuid.Set(sym.Uuid)
+		if err != nil {
+			return nil, err
+		}
 
-			if protoSym.CreatedAt == 0 {
-				e.CreatedAt = pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present}
-			}
-			if protoSym.UpdatedAt != 0 {
-				e.UpdatedAt = pgtype.Timestamptz{Time: time.Unix(0, protoSym.UpdatedAt), Status: pgtype.Present}
-			} else {
-				e.UpdatedAt = pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present}
-			}
-			if protoSym.DeletedAt != 0 {
-				e.DeletedAt = pgtype.Timestamptz{Time: time.Unix(0, protoSym.DeletedAt), Status: pgtype.Present}
-			} else {
-				e.DeletedAt = pgtype.Timestamptz{Status: pgtype.Null}
-			}
+		e.CurrencyID = curr.ID
+		e.Isin = sym.Isin
+		e.Identifier = sym.Identifier
+		e.Name = sym.Name
+		var moq pgtype.Float4
+		_ = moq.Set(sym.MinimumOrderQuantity)
+		e.MinimumOrderQuantity = moq
+		e.MarketName = sym.MarketName
+		e.MarketHoursGmt = sym.MarketHoursGmt
 
-			queue <- &e
-		}(sym)
+		e.CreatedAt = pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present}
+		e.UpdatedAt = pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present}
+		e.DeletedAt = pgtype.Timestamptz{Status: pgtype.Null}
+
+		result = append(result, &e)
 	}
 
-	go func() {
-		for sym := range queue {
-			result = append(result, sym)
-			wg.Done()
-		}
-	}()
-
-	wg.Wait()
-
-	return result
+	return result, nil
 }

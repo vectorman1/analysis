@@ -1,3 +1,5 @@
+.idea/
+
 generated/*
 certs/*
 api/swagger/v1/*

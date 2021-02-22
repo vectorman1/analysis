@@ -2,14 +2,17 @@ package service
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"github.com/chromedp/chromedp"
 	"github.com/dystopia-systems/alaskalog"
+	"github.com/gofrs/uuid"
 	"github.com/vectorman1/analysis/analysis-worker/common"
 	"github.com/vectorman1/analysis/analysis-worker/generated/proto_models"
 	"github.com/vectorman1/analysis/analysis-worker/generated/trading212_service"
 	"golang.org/x/net/html"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"golang.org/x/sync/errgroup"
+	"io"
+	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -21,161 +24,144 @@ type Trading212Service struct {
 	instrumentsLink          string
 	showMoreSelector         string
 	instrumentsTableSelector string
+	config *common.Config
 	trading212_service.UnimplementedTrading212ServiceServer
 }
 
-func (s Trading212Service) New(instrumentsLink string, showMoreSelector string, instrumentsTableSelector string) *Trading212Service {
+func (s Trading212Service) New(instrumentsLink string, showMoreSelector string, instrumentsTableSelector string, cfg *common.Config) *Trading212Service {
 	return &Trading212Service{
 		instrumentsLink:          instrumentsLink,
 		showMoreSelector:         showMoreSelector,
 		instrumentsTableSelector: instrumentsTableSelector,
+		config: cfg,
 	}
 }
 
-func (s *Trading212Service) GetUpdatedSymbols(data *proto_models.Symbols, srv trading212_service.Trading212Service_GetUpdatedSymbolsServer) error {
+func (s Trading212Service) RecalculateSymbols(srv trading212_service.Trading212Service_RecalculateSymbolsServer) error {
 	ctx := srv.Context()
 	alaskalog.Logger.Infoln("got request")
+	var oldSymbols []*proto_models.Symbol
+
 	for {
-		externalData := pullAndParseTrading212Data(s.instrumentsLink, s.showMoreSelector, s.instrumentsTableSelector)
-		if externalData == nil {
-			ctx.Done()
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
 		}
 
-		res := make(<-chan *proto_models.Symbol)
-		if data.Symbols == nil {
-			res = externalData
-		} else {
-			res = generateResult(externalData, data)
+		req, err := srv.Recv()
+		if err == io.EOF {
+			break
 		}
-
-		for r := range res {
-			if err := srv.Send(r); err != nil {
-				alaskalog.Logger.Warnf("send error: %v", err)
-				break
-			}
-			print(" sent: ", r.Identifier)
-		}
-
-		select{
-
-		}
-	}
-}
-
-func (s *Trading212Service) GetSymbols(data *trading212_service.GetRequest, srv trading212_service.Trading212Service_GetSymbolsServer) error {
-	res := pullAndParseTrading212Data(s.instrumentsLink, s.showMoreSelector, s.instrumentsTableSelector)
-
-	if res == nil {
-		return errors.New("couldn't get t212 data")
-	}
-
-	for symbol := range res {
-		if err := srv.Send(symbol); err != nil {
-			alaskalog.Logger.Warnf("error while sending: %v", err)
+		if err != nil {
+			alaskalog.Logger.Warnf("recv error: %v", err)
 			return err
 		}
+
+		oldSymbols = append(oldSymbols, req)
 	}
-	println("finished sending response")
+
+	externalData, err  := pullAndParseTrading212Data(s.instrumentsLink, s.showMoreSelector, s.instrumentsTableSelector, s.config)
+	if err != nil {
+		return err
+	}
+
+	alaskalog.Logger.Infoln(len(externalData), len(oldSymbols))
+	res := generateResult(externalData, oldSymbols)
+
+
+	for _, r := range res {
+		if err := srv.Send(r); err != nil {
+			alaskalog.Logger.Warnf("send error: %v", err)
+			break
+		}
+		alaskalog.Logger.Infoln(" sent: ", r.Symbol.Identifier, r.Symbol.Isin, r.Symbol.Uuid, r.Type)
+	}
+
 	return nil
 }
 
-func generateResult(newSymbolsChan <-chan *proto_models.Symbol, oldSymbols *proto_models.Symbols) <-chan *proto_models.Symbol {
-	if oldSymbols.Symbols == nil {
-		return newSymbolsChan
-	} else {
-		var newSymbolsData []*proto_models.Symbol
+func generateResult(newSymbols []*proto_models.Symbol, oldSymbols []*proto_models.Symbol) map[string]*trading212_service.RecalculateSymbolsResponse {
+	unique := make(map[string]*trading212_service.RecalculateSymbolsResponse)
 
-		for s := range newSymbolsChan {
-			newSymbolsData = append(newSymbolsData, s)
-		}
-
-		res := make(chan *proto_models.Symbol)
-		oldDeletedSyms := make(chan *proto_models.Symbol)
-		newAndUpdatedSyms := make(chan *proto_models.Symbol)
-
-		go func() {
-			defer close(oldDeletedSyms)
-			defer println("set deleted syms")
-			var wg sync.WaitGroup
-			for _, oldSym := range oldSymbols.Symbols {
-				wg.Add(1)
-				go func(oldSym *proto_models.Symbol) {
-					defer wg.Done()
-					if ok, _ := common.ContainsSymbol(oldSym.ISIN, oldSym.Identifier, newSymbolsData); !ok {
-						oldSym.DeletedAt = timestamppb.Now()
-						oldDeletedSyms <- oldSym
-					}
-				}(oldSym)
+	// generate create, update and ignore responses
+	for _, newSym := range newSymbols {
+		if ok, oldSym := common.ContainsSymbol(newSym.Uuid, oldSymbols); !ok {
+			if unique[newSym.Uuid] == nil {
+				unique[newSym.Uuid] =
+					&trading212_service.RecalculateSymbolsResponse{
+					Type:   trading212_service.RecalculateSymbolsResponse_CREATE,
+					Symbol: newSym,
+				}
+			} else {
+				log.Println("collision: ", newSym)
+				log.Println("existing: ", unique[newSym.Uuid])
 			}
-			wg.Wait()
-		}()
-		go func() {
-			defer close(newAndUpdatedSyms)
-			defer println("inserting and updating")
-			var wg sync.WaitGroup
-			for i := 0; i < common.MaxConcurrency; i++ {
-				wg.Add(1)
-				go func(wg *sync.WaitGroup) {
-					defer wg.Done()
-					for _, newSym := range newSymbolsData {
-						if ok, oldSym := common.ContainsSymbol(newSym.ISIN, newSym.Identifier, oldSymbols.Symbols); !ok {
-							newSym.CreatedAt = timestamppb.Now()
-							newAndUpdatedSyms <- newSym
-						} else {
-							shouldUpdate := false
-							if oldSym.Name != newSym.Name {
-								shouldUpdate = true
-								oldSym.Name = newSym.Name
-							}
-							if oldSym.MarketName != newSym.MarketName {
-								shouldUpdate = true
-								oldSym.MarketName = newSym.MarketName
-							}
-							if oldSym.MarketHoursGMT != newSym.MarketHoursGMT {
-								shouldUpdate = true
-								oldSym.MarketHoursGMT = newSym.MarketHoursGMT
-							}
-							if oldSym.Currency.Code != newSym.Currency.Code {
-								shouldUpdate = true
-								oldSym.Currency = &proto_models.Currency{Code: newSym.Currency.Code}
-							}
-							if oldSym.MinimumOrderQuantity != newSym.MinimumOrderQuantity {
-								shouldUpdate = true
-								oldSym.MinimumOrderQuantity = newSym.MinimumOrderQuantity
-							}
-							if shouldUpdate {
-								t := timestamppb.New(time.Now())
-								oldSym.UpdatedAt = t
-							}
-							newAndUpdatedSyms <- oldSym
+		} else {
+			// check if any fields from the new symbol are different from the old
+			shouldUpdate := false
+			if oldSym.Currency.Code != newSym.Currency.Code {
+				shouldUpdate = true
+			} else if oldSym.Name != newSym.Name {
+				shouldUpdate = true
+			} else if oldSym.MinimumOrderQuantity != newSym.MinimumOrderQuantity {
+				shouldUpdate = true
+			} else if oldSym.MarketName != newSym.MarketName {
+				shouldUpdate = true
+			} else if oldSym.MarketHoursGmt != newSym.MarketHoursGmt {
+				shouldUpdate = true
+			}
+
+			// if any fields are updated, send and update response, otherwise, send it back and ignore it
+			if shouldUpdate {
+				if unique[newSym.Uuid] == nil {
+					unique[newSym.Uuid] =
+						&trading212_service.RecalculateSymbolsResponse{
+							Type:   trading212_service.RecalculateSymbolsResponse_UPDATE,
+							Symbol: newSym,
 						}
-					}
-				}(&wg)
+				} else {
+					log.Println("collision: ", newSym)
+				}
+			} else {
+				if unique[newSym.Uuid] == nil {
+					unique[newSym.Uuid] =
+						&trading212_service.RecalculateSymbolsResponse{
+							Type:   trading212_service.RecalculateSymbolsResponse_IGNORE,
+							Symbol: newSym,
+						}
+				} else {
+					log.Println("collision: ", newSym)
+				}
 			}
-			wg.Wait()
-		}()
-
-		go func() {
-			for s := range oldDeletedSyms {
-				res <- s
-			}
-			for s := range newAndUpdatedSyms {
-				res <- s
-			}
-		}()
-
-		return res
+		}
 	}
+
+	// generate delete responses
+	for _, oldSym := range oldSymbols {
+		if ok, _ := common.ContainsSymbol(oldSym.Uuid, newSymbols); !ok {
+			if unique[oldSym.Uuid] == nil {
+				unique[oldSym.Uuid] = &trading212_service.RecalculateSymbolsResponse{
+					Type:   trading212_service.RecalculateSymbolsResponse_DELETE,
+					Symbol: oldSym,
+				}
+			} else {
+				log.Println("collision: ", oldSym)
+			}
+		}
+	}
+
+	return unique
 }
 
-func pullAndParseTrading212Data(instrumentsLink, showMoreSelector, instrumentsTableSelector string) <-chan *proto_models.Symbol {
+func pullAndParseTrading212Data(instrumentsLink, showMoreSelector, instrumentsTableSelector string, cfg *common.Config) ([]*proto_models.Symbol, error) {
 	ctx, c := chromedp.NewContext(
 		context.Background(),
 		chromedp.WithLogf(alaskalog.Logger.Infof),
 	)
 	defer c()
 
-	ctx, c = context.WithTimeout(ctx, 15*time.Second)
+	ctx, c = context.WithTimeout(ctx, 30*time.Second)
 	defer c()
 
 	var htmlRes string
@@ -186,37 +172,62 @@ func pullAndParseTrading212Data(instrumentsLink, showMoreSelector, instrumentsTa
 		chromedp.InnerHTML(instrumentsTableSelector, &htmlRes))
 	if err != nil {
 		alaskalog.Logger.Warnf("failed to get 212 webpage: %v", err)
-		return nil
+		return nil, err
 	}
 
-	return parseHtmlToProtoSyms(htmlRes)
+	return parseHtmlToProtoSyms(htmlRes, cfg)
 }
 
-func parseHtmlToProtoSyms(htmlRes string) <-chan *proto_models.Symbol {
-	parsedProtoSyms := make(chan *proto_models.Symbol)
-	rows := walkTable(htmlRes)
+func parseHtmlToProtoSyms(htmlRes string, cfg *common.Config) ([]*proto_models.Symbol, error) {
+	var parsedProtoSyms []*proto_models.Symbol
+	var wg sync.WaitGroup
 
-	go func() {
-		defer close(parsedProtoSyms)
-		defer println("closing parsed syms")
-		var wg sync.WaitGroup
-		for i := 0; i < common.MaxConcurrency; i++ {
-			wg.Add(1)
-			go func(wg *sync.WaitGroup) {
-				defer wg.Done()
-				for row := range rows {
-					sym := getSymbolData(row)
-					parsedProtoSyms <- &sym
-				}
-			}(&wg)
+	rows, err := walkTable(htmlRes)
+	if err != nil {
+		return nil, err
+	}
+
+	// get results from parser worker
+	parsedSymsChan := make(chan *proto_models.Symbol)
+	go func(wg *sync.WaitGroup) {
+		for sym := range parsedSymsChan {
+			parsedProtoSyms = append(parsedProtoSyms, sym)
+			wg.Done()
 		}
-		wg.Wait()
-	}()
+	}(&wg)
 
-	return parsedProtoSyms
+	ctx, c1 := context.WithTimeout(context.Background(), time.Second)
+	defer c1()
+
+	g, _ := errgroup.WithContext(ctx)
+
+	// spawn goroutine for each row
+	for _, row := range rows {
+		wg.Add(1)
+		trow := row
+		g.Go(func() error {
+			sym, err := getSymbolData(trow, cfg)
+			if err != nil {
+				return err
+			}
+			parsedSymsChan <- sym
+			return nil
+		})
+	}
+
+	// check for any errors
+	err = g.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	// wait for the results to be added to the array
+	wg.Wait()
+
+	return parsedProtoSyms, nil
 }
 
-func getSymbolData(row []string) proto_models.Symbol {
+func getSymbolData(row []string, cfg *common.Config) (*proto_models.Symbol, error) {
 	instrumentName := strings.TrimSpace(row[0])
 	companyName := strings.TrimSpace(row[1])
 	currencyCode := strings.TrimSpace(row[2])
@@ -226,8 +237,18 @@ func getSymbolData(row []string) proto_models.Symbol {
 	marketName := strings.TrimSpace(row[5])
 	marketHours := strings.TrimSpace(row[6])
 
-	return proto_models.Symbol{
-		ISIN:                 isin,
+	ns, err := uuid.FromString(cfg.SymbolsNamespace)
+	if err != nil {
+		return nil, err
+	}
+
+	str := fmt.Sprintf("%s,%s", isin, instrumentName)
+	u := uuid.NewV5(ns, str)
+	us := u.String()
+
+	return &proto_models.Symbol{
+		Uuid: us,
+		Isin:                 isin,
 		Identifier:           instrumentName,
 		Name:                 companyName,
 		Currency:             &proto_models.Currency{
@@ -235,68 +256,60 @@ func getSymbolData(row []string) proto_models.Symbol {
 		},
 		MinimumOrderQuantity: roundedMinQuantity,
 		MarketName:           marketName,
-		MarketHoursGMT:       marketHours,
-	}
+		MarketHoursGmt:       marketHours,
+	}, nil
 }
 
-func walkTable(htmlRes string) <-chan []string {
-	res := make(chan []string)
+func walkTable(htmlRes string) ([][]string, error) {
+	doc, err := html.Parse(strings.NewReader(htmlRes))
+	if err != nil {
+		return nil, err
+	}
 
-	go func() {
-		defer close(res)
-		z := html.NewTokenizer(strings.NewReader(htmlRes))
-		for tt := z.Next();
-			tt != html.ErrorToken;
-			tt = z.Next() {
-			t := z.Token()
-			switch t.Type {
-			case html.StartTagToken:
-				if t.Data == "div" {
-					for _, a := range t.Attr {
-						if a.Key == "id" && strings.Contains(a.Val, "equity-row-") {
-							// TODO: Figure out better logic.
-							z.Next()
-							z.Next()
-							instrumentName := z.Token().Data
-							z.Next()
-							z.Next()
-							z.Next()
-							companyName := z.Token().Data
-							z.Next()
-							z.Next()
-							z.Next()
-							currencyCode := z.Token().Data
-							z.Next()
-							z.Next()
-							z.Next()
-							isinNode := z.Token().Data
-							z.Next()
-							z.Next()
-							z.Next()
-							minTradedQuantityNode := z.Token().Data
-							z.Next()
-							z.Next()
-							z.Next()
-							marketName := z.Token().Data
-							z.Next()
-							z.Next()
-							z.Next()
-							marketHours := z.Token().Data
-							res <- []string{
-								instrumentName,
-								companyName,
-								currencyCode,
-								isinNode,
-								minTradedQuantityNode,
-								marketName,
-								marketHours,
-							}
-						}
-					}
+	var symbolRows [][]string
+
+	visitNode := func(n *html.Node) {
+		if n.Type == html.ElementNode &&  n.Data == "div" {
+			for _, a := range n.Attr {
+				if a.Key == "id" && strings.Contains(a.Val, "equity-row-") {
+					var row []string
+					instrumentName := n.FirstChild
+					companyName := instrumentName.NextSibling
+					currencyCode := companyName.NextSibling
+					isin := currencyCode.NextSibling
+					minTradedQuantity := isin.NextSibling
+					marketName := minTradedQuantity.NextSibling
+					marketHours := marketName.NextSibling
+
+					row = append(row,
+						[]string{
+							instrumentName.FirstChild.Data,
+							companyName.FirstChild.Data,
+							currencyCode.FirstChild.Data,
+							isin.FirstChild.Data,
+							minTradedQuantity.FirstChild.Data,
+							marketName.FirstChild.Data,
+							strings.TrimSpace(marketHours.FirstChild.Data)}...)
+					symbolRows = append(symbolRows, row)
 				}
 			}
 		}
-	}()
+	}
 
-	return res
+	forEachNode(doc, visitNode, nil)
+
+	return symbolRows, nil
+}
+
+// Copied from gopl.io/ch5/outline2.
+func forEachNode(n *html.Node, pre, post func(n *html.Node)) {
+	if pre != nil {
+		pre(n)
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		forEachNode(c, pre, post)
+	}
+	if post != nil {
+		post(n)
+	}
 }

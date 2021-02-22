@@ -39,6 +39,28 @@ protoc -I . --proto_path=api/proto/v1 \
             --grpc-gateway_opt generate_unbound_methods=true \
             symbol_service.proto
 
+mkdir -p generated/user_service
+protoc -I . --proto_path=api/proto/v1 \
+            --proto_path=third_party \
+            --go_out=generated/user_service \
+            --go_opt=paths=source_relative \
+            --go-grpc_out=generated/user_service \
+            --go-grpc_opt=paths=source_relative \
+            user_service.proto
+
+protoc -I . --proto_path=api/proto/v1 \
+            --proto_path=third_party \
+            --openapiv2_out ./api/swagger/v1 \
+            --openapiv2_opt logtostderr=true \
+             user_service.proto
+
+protoc -I . --proto_path=api/proto/v1 \
+            --proto_path=third_party \
+            --grpc-gateway_out ./generated/user_service \
+            --grpc-gateway_opt paths=source_relative \
+            --grpc-gateway_opt generate_unbound_methods=true \
+             user_service.proto
+
 # Worker services
 
 mkdir -p generated/trading212_service

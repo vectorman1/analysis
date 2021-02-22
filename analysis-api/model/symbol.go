@@ -7,9 +7,10 @@ import (
 )
 
 type Symbol struct {
-	ID         uint     `json:"id"`
-	CurrencyID uint     `json:"currency_id"`
-	Currency   Currency `json:"-"`
+	ID         uint        `json:"-"`
+	Uuid       pgtype.UUID `json:"uuid"`
+	CurrencyID uint        `json:"currency_id"`
+	Currency   Currency    `json:"-"`
 
 	Isin                 string        `json:"isin"`
 	Identifier           string        `json:"identifier"`
@@ -31,6 +32,10 @@ func (s *Symbol) ToProtoObject() *proto_models.Symbol {
 		deletedAt = nil
 	}
 
+	// db constraint
+	var u string
+	s.Uuid.AssignTo(&u)
+
 	return &proto_models.Symbol{
 		Id: uint64(s.ID),
 		Currency: &proto_models.Currency{
@@ -39,6 +44,7 @@ func (s *Symbol) ToProtoObject() *proto_models.Symbol {
 			LongName: s.Currency.LongName,
 		},
 		Isin:                 s.Isin,
+		Uuid:                 u,
 		Identifier:           s.Identifier,
 		Name:                 s.Name,
 		MinimumOrderQuantity: s.MinimumOrderQuantity.Float,

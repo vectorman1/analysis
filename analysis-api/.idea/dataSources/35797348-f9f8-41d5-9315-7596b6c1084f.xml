@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dataSource name="analysis@localhost">
+<dataSource name="analysis@localhost [2]">
   <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.20">
     <root id="1">
       <ServerVersion>13.2</ServerVersion>
@@ -787,17 +787,18 @@ false Zulu
       <StartupTime>1613713715</StartupTime>
     </root>
     <database id="2" parent="1" name="analysis">
-      <ObjectId>16394</ObjectId>
-      <Owner>postgres</Owner>
-      <IntrospectionStateNumber>17301</IntrospectionStateNumber>
+      <ObjectId>26800</ObjectId>
+      <Owner>harb</Owner>
+      <IntrospectionStateNumber>17986</IntrospectionStateNumber>
       <Current>1</Current>
-      <Relations>sequence|table|25990|25992|1
-sequence|table|26003|26005|1
-sequence|table|26021|26023|1
-sequence|table|26039|26041|1
-sequence|table|26062|26064|1
-sequence|table|26075|26077|1
-sequence|table|26095|26097|1
+      <Relations>sequence|table|28559|28561|1
+sequence|table|28572|28574|1
+sequence|table|28590|28592|1
+sequence|table|28608|28610|1
+sequence|table|28631|28633|1
+sequence|table|28644|28646|1
+sequence|table|28664|28666|1
+sequence|table|28683|28685|1
 </Relations>
     </database>
     <database id="3" parent="1" name="postgres">
@@ -854,13 +855,12 @@ sequence|table|26095|26097|1
       <StateNumber>1</StateNumber>
     </tablespace>
     <schema id="16" parent="2" name="analysis">
-      <ObjectId>25989</ObjectId>
-      <Acl>10=UC/10
-16395=UC/10
+      <ObjectId>28558</ObjectId>
+      <Acl>16395=UC/16395
 </Acl>
-      <StateNumber>17250</StateNumber>
-      <Owner>postgres</Owner>
-      <IntrospectionStateNumber>17259</IntrospectionStateNumber>
+      <StateNumber>17976</StateNumber>
+      <Owner>harb</Owner>
+      <IntrospectionStateNumber>17987</IntrospectionStateNumber>
     </schema>
     <schema id="17" parent="2" name="information_schema">
       <ObjectId>13158</ObjectId>
@@ -887,10 +887,16 @@ UC/10
 </Acl>
       <StateNumber>287</StateNumber>
       <Owner>postgres</Owner>
-      <IntrospectionStateNumber>17302</IntrospectionStateNumber>
+      <IntrospectionStateNumber>17988</IntrospectionStateNumber>
       <Current>1</Current>
     </schema>
-    <extension id="20" parent="2" name="plpgsql">
+    <schema id="20" parent="2" name="user">
+      <ObjectId>28682</ObjectId>
+      <StateNumber>17984</StateNumber>
+      <Owner>harb</Owner>
+      <IntrospectionStateNumber>17989</IntrospectionStateNumber>
+    </schema>
+    <extension id="21" parent="2" name="plpgsql">
       <ObjectId>13428</ObjectId>
       <Comment>PL/pgSQL procedural language</Comment>
       <StateNumber>439</StateNumber>
@@ -898,21 +904,29 @@ UC/10
       <SchemaName>pg_catalog</SchemaName>
       <SchemaId>11</SchemaId>
     </extension>
-    <language id="21" parent="2" name="c">
+    <extension id="22" parent="2" name="uuid-ossp">
+      <ObjectId>27005</ObjectId>
+      <Comment>generate universally unique identifiers (UUIDs)</Comment>
+      <StateNumber>17601</StateNumber>
+      <Version>1.1</Version>
+      <SchemaName>public</SchemaName>
+      <SchemaId>2200</SchemaId>
+    </extension>
+    <language id="23" parent="2" name="c">
       <ObjectId>13</ObjectId>
       <Comment>dynamically-loaded C functions</Comment>
       <StateNumber>1</StateNumber>
       <ValidatorName>fmgr_c_validator</ValidatorName>
       <ValidatorSchema>pg_catalog</ValidatorSchema>
     </language>
-    <language id="22" parent="2" name="internal">
+    <language id="24" parent="2" name="internal">
       <ObjectId>12</ObjectId>
       <Comment>built-in functions</Comment>
       <StateNumber>1</StateNumber>
       <ValidatorName>fmgr_internal_validator</ValidatorName>
       <ValidatorSchema>pg_catalog</ValidatorSchema>
     </language>
-    <language id="23" parent="2" name="plpgsql">
+    <language id="25" parent="2" name="plpgsql">
       <ObjectId>13432</ObjectId>
       <Comment>PL/pgSQL procedural language</Comment>
       <StateNumber>439</StateNumber>
@@ -924,7 +938,7 @@ UC/10
       <ValidatorName>plpgsql_validator</ValidatorName>
       <ValidatorSchema>pg_catalog</ValidatorSchema>
     </language>
-    <language id="24" parent="2" name="sql">
+    <language id="26" parent="2" name="sql">
       <ObjectId>14</ObjectId>
       <Comment>SQL-language functions</Comment>
       <StateNumber>1</StateNumber>
@@ -932,14 +946,14 @@ UC/10
       <ValidatorName>fmgr_sql_validator</ValidatorName>
       <ValidatorSchema>pg_catalog</ValidatorSchema>
     </language>
-    <access-method id="25" parent="2" name="heap">
+    <access-method id="27" parent="2" name="heap">
       <ObjectId>2</ObjectId>
       <Comment>heap table access method</Comment>
       <StateNumber>1</StateNumber>
       <Handler>pg_catalog.heap_tableam_handler</Handler>
       <HandlerId>3</HandlerId>
     </access-method>
-    <access-method id="26" parent="2" name="btree">
+    <access-method id="28" parent="2" name="btree">
       <ObjectId>403</ObjectId>
       <Comment>b-tree index access method</Comment>
       <StateNumber>1</StateNumber>
@@ -947,7 +961,7 @@ UC/10
       <HandlerId>330</HandlerId>
       <Type>index</Type>
     </access-method>
-    <access-method id="27" parent="2" name="hash">
+    <access-method id="29" parent="2" name="hash">
       <ObjectId>405</ObjectId>
       <Comment>hash index access method</Comment>
       <StateNumber>1</StateNumber>
@@ -955,7 +969,7 @@ UC/10
       <HandlerId>331</HandlerId>
       <Type>index</Type>
     </access-method>
-    <access-method id="28" parent="2" name="gist">
+    <access-method id="30" parent="2" name="gist">
       <ObjectId>783</ObjectId>
       <Comment>GiST index access method</Comment>
       <StateNumber>1</StateNumber>
@@ -963,7 +977,7 @@ UC/10
       <HandlerId>332</HandlerId>
       <Type>index</Type>
     </access-method>
-    <access-method id="29" parent="2" name="gin">
+    <access-method id="31" parent="2" name="gin">
       <ObjectId>2742</ObjectId>
       <Comment>GIN index access method</Comment>
       <StateNumber>1</StateNumber>
@@ -971,7 +985,7 @@ UC/10
       <HandlerId>333</HandlerId>
       <Type>index</Type>
     </access-method>
-    <access-method id="30" parent="2" name="spgist">
+    <access-method id="32" parent="2" name="spgist">
       <ObjectId>4000</ObjectId>
       <Comment>SP-GiST index access method</Comment>
       <StateNumber>1</StateNumber>
@@ -979,7 +993,7 @@ UC/10
       <HandlerId>334</HandlerId>
       <Type>index</Type>
     </access-method>
-    <access-method id="31" parent="2" name="brin">
+    <access-method id="33" parent="2" name="brin">
       <ObjectId>3580</ObjectId>
       <Comment>block range index (BRIN) access method</Comment>
       <StateNumber>1</StateNumber>
@@ -987,108 +1001,236 @@ UC/10
       <HandlerId>335</HandlerId>
       <Type>index</Type>
     </access-method>
-    <sequence id="32" parent="16" name="currencies_id_seq">
-      <ObjectId>25990</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17251</StateNumber>
+    <sequence id="34" parent="16" name="currencies_id_seq">
+      <ObjectId>28559</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17977</StateNumber>
       <DataType>integer|0s</DataType>
     </sequence>
-    <sequence id="33" parent="16" name="histories_id_seq">
-      <ObjectId>26021</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17253</StateNumber>
+    <sequence id="35" parent="16" name="histories_id_seq">
+      <ObjectId>28590</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17979</StateNumber>
       <DataType>integer|0s</DataType>
     </sequence>
-    <sequence id="34" parent="16" name="reports_id_seq">
-      <ObjectId>26039</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17254</StateNumber>
+    <sequence id="36" parent="16" name="reports_id_seq">
+      <ObjectId>28608</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17980</StateNumber>
       <DataType>integer|0s</DataType>
     </sequence>
-    <sequence id="35" parent="16" name="signal_reports_id_seq">
-      <ObjectId>26095</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17257</StateNumber>
+    <sequence id="37" parent="16" name="signal_reports_id_seq">
+      <ObjectId>28664</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17983</StateNumber>
       <DataType>integer|0s</DataType>
     </sequence>
-    <sequence id="36" parent="16" name="signals_id_seq">
-      <ObjectId>26075</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17256</StateNumber>
+    <sequence id="38" parent="16" name="signals_id_seq">
+      <ObjectId>28644</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17982</StateNumber>
       <DataType>integer|0s</DataType>
     </sequence>
-    <sequence id="37" parent="16" name="strategies_id_seq">
-      <ObjectId>26062</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17255</StateNumber>
+    <sequence id="39" parent="16" name="strategies_id_seq">
+      <ObjectId>28631</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17981</StateNumber>
       <DataType>integer|0s</DataType>
     </sequence>
-    <sequence id="38" parent="16" name="symbols_id_seq">
-      <ObjectId>26003</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17252</StateNumber>
+    <sequence id="40" parent="16" name="symbols_id_seq">
+      <ObjectId>28572</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17978</StateNumber>
       <DataType>integer|0s</DataType>
     </sequence>
-    <table id="39" parent="16" name="currencies">
-      <ObjectId>25992</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17252</StateNumber>
+    <table id="41" parent="16" name="currencies">
+      <ObjectId>28561</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17978</StateNumber>
     </table>
-    <table id="40" parent="16" name="histories">
-      <ObjectId>26023</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17253</StateNumber>
+    <table id="42" parent="16" name="histories">
+      <ObjectId>28592</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17979</StateNumber>
     </table>
-    <table id="41" parent="16" name="reports">
-      <ObjectId>26041</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17254</StateNumber>
+    <table id="43" parent="16" name="reports">
+      <ObjectId>28610</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17980</StateNumber>
     </table>
-    <table id="42" parent="16" name="signal_reports">
-      <ObjectId>26097</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17257</StateNumber>
+    <table id="44" parent="16" name="signal_reports">
+      <ObjectId>28666</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17983</StateNumber>
     </table>
-    <table id="43" parent="16" name="signals">
-      <ObjectId>26077</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17256</StateNumber>
+    <table id="45" parent="16" name="signals">
+      <ObjectId>28646</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17982</StateNumber>
     </table>
-    <table id="44" parent="16" name="strategies">
-      <ObjectId>26064</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17256</StateNumber>
+    <table id="46" parent="16" name="strategies">
+      <ObjectId>28633</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17982</StateNumber>
     </table>
-    <table id="45" parent="16" name="symbols">
-      <ObjectId>26005</ObjectId>
-      <Owner>postgres</Owner>
-      <StateNumber>17252</StateNumber>
+    <table id="47" parent="16" name="symbols">
+      <ObjectId>28574</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17978</StateNumber>
     </table>
-    <column id="46" parent="39" name="id">
+    <routine id="48" parent="19" name="uuid_generate_v1">
+      <ObjectId>27011</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="49" parent="19" name="uuid_generate_v1mc">
+      <ObjectId>27012</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="50" parent="19" name="uuid_generate_v3">
+      <ObjectId>27013</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <VolatilityKind>immutable</VolatilityKind>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="51" parent="19" name="uuid_generate_v4">
+      <ObjectId>27014</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="52" parent="19" name="uuid_generate_v5">
+      <ObjectId>27015</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <VolatilityKind>immutable</VolatilityKind>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="53" parent="19" name="uuid_nil">
+      <ObjectId>27006</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <VolatilityKind>immutable</VolatilityKind>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="54" parent="19" name="uuid_ns_dns">
+      <ObjectId>27007</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <VolatilityKind>immutable</VolatilityKind>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="55" parent="19" name="uuid_ns_oid">
+      <ObjectId>27009</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <VolatilityKind>immutable</VolatilityKind>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="56" parent="19" name="uuid_ns_url">
+      <ObjectId>27008</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <VolatilityKind>immutable</VolatilityKind>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <routine id="57" parent="19" name="uuid_ns_x500">
+      <ObjectId>27010</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17601</StateNumber>
+      <VolatilityKind>immutable</VolatilityKind>
+      <LanguageName>c</LanguageName>
+      <RoutineKind>function</RoutineKind>
+      <Strict>1</Strict>
+      <Cost>1.0</Cost>
+      <Rows>0.0</Rows>
+      <ConcurrencyKind>safe</ConcurrencyKind>
+    </routine>
+    <sequence id="58" parent="20" name="users_id_seq">
+      <ObjectId>28683</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17985</StateNumber>
+      <DataType>integer|0s</DataType>
+    </sequence>
+    <table id="59" parent="20" name="users">
+      <ObjectId>28685</ObjectId>
+      <Owner>harb</Owner>
+      <StateNumber>17985</StateNumber>
+    </table>
+    <column id="60" parent="41" name="id">
       <Position>1</Position>
       <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17251</StateNumber>
+      <StateNumber>17977</StateNumber>
       <DefaultExpression>nextval(&apos;analysis.currencies_id_seq&apos;::regclass)</DefaultExpression>
       <TypeId>23</TypeId>
     </column>
-    <column id="47" parent="39" name="code">
+    <column id="61" parent="41" name="code">
       <Position>2</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17251</StateNumber>
+      <StateNumber>17977</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="48" parent="39" name="long_name">
+    <column id="62" parent="41" name="long_name">
       <Position>3</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17251</StateNumber>
+      <StateNumber>17977</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="49" parent="39" name="currencies_pkey">
-      <ObjectId>25999</ObjectId>
-      <StateNumber>17251</StateNumber>
+    <index id="63" parent="41" name="currencies_pkey">
+      <ObjectId>28568</ObjectId>
+      <StateNumber>17977</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
@@ -1096,9 +1238,9 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>1978</ClassIds>
     </index>
-    <index id="50" parent="39" name="currencies_code_key">
-      <ObjectId>26001</ObjectId>
-      <StateNumber>17251</StateNumber>
+    <index id="64" parent="41" name="currencies_code_key">
+      <ObjectId>28570</ObjectId>
+      <StateNumber>17977</StateNumber>
       <ColNames>code</ColNames>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
@@ -1106,59 +1248,59 @@ UC/10
       <CollationNames>default</CollationNames>
       <ClassIds>3126</ClassIds>
     </index>
-    <key id="51" parent="39" name="currencies_pkey">
-      <ObjectId>26000</ObjectId>
-      <StateNumber>17251</StateNumber>
+    <key id="65" parent="41" name="currencies_pkey">
+      <ObjectId>28569</ObjectId>
+      <StateNumber>17977</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>currencies_pkey</UnderlyingIndexName>
     </key>
-    <key id="52" parent="39" name="currencies_code_key">
-      <ObjectId>26002</ObjectId>
-      <StateNumber>17251</StateNumber>
+    <key id="66" parent="41" name="currencies_code_key">
+      <ObjectId>28571</ObjectId>
+      <StateNumber>17977</StateNumber>
       <ColNames>code</ColNames>
       <UnderlyingIndexName>currencies_code_key</UnderlyingIndexName>
     </key>
-    <column id="53" parent="40" name="id">
+    <column id="67" parent="42" name="id">
       <Position>1</Position>
       <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17253</StateNumber>
+      <StateNumber>17979</StateNumber>
       <DefaultExpression>nextval(&apos;analysis.histories_id_seq&apos;::regclass)</DefaultExpression>
       <TypeId>23</TypeId>
     </column>
-    <column id="54" parent="40" name="symbol_id">
+    <column id="68" parent="42" name="symbol_id">
       <Position>2</Position>
       <DataType>bigint|0s</DataType>
-      <StateNumber>17253</StateNumber>
+      <StateNumber>17979</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="55" parent="40" name="values">
+    <column id="69" parent="42" name="values">
       <Position>3</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17253</StateNumber>
+      <StateNumber>17979</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="56" parent="40" name="created_at">
+    <column id="70" parent="42" name="created_at">
       <Position>4</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17253</StateNumber>
+      <StateNumber>17979</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <column id="57" parent="40" name="updated_at">
+    <column id="71" parent="42" name="updated_at">
       <Position>5</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17253</StateNumber>
+      <StateNumber>17979</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <index id="58" parent="40" name="histories_pkey">
-      <ObjectId>26032</ObjectId>
-      <StateNumber>17253</StateNumber>
+    <index id="72" parent="42" name="histories_pkey">
+      <ObjectId>28601</ObjectId>
+      <StateNumber>17979</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
@@ -1166,98 +1308,98 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>1978</ClassIds>
     </index>
-    <key id="59" parent="40" name="histories_pkey">
-      <ObjectId>26033</ObjectId>
-      <StateNumber>17253</StateNumber>
+    <key id="73" parent="42" name="histories_pkey">
+      <ObjectId>28602</ObjectId>
+      <StateNumber>17979</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>histories_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="60" parent="40" name="fk_histories_symbol">
-      <ObjectId>26034</ObjectId>
-      <StateNumber>17253</StateNumber>
+    <foreign-key id="74" parent="42" name="fk_histories_symbol">
+      <ObjectId>28603</ObjectId>
+      <StateNumber>17979</StateNumber>
       <ColNames>symbol_id</ColNames>
-      <RefTableId>26005</RefTableId>
+      <RefTableId>28574</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>symbols</RefTableName>
       <RefKeyName>symbols_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <column id="61" parent="41" name="id">
+    <column id="75" parent="43" name="id">
       <Position>1</Position>
       <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <DefaultExpression>nextval(&apos;analysis.reports_id_seq&apos;::regclass)</DefaultExpression>
       <TypeId>23</TypeId>
     </column>
-    <column id="62" parent="41" name="symbol_id">
+    <column id="76" parent="43" name="symbol_id">
       <Position>2</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="63" parent="41" name="history_id">
+    <column id="77" parent="43" name="history_id">
       <Position>3</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="64" parent="41" name="exponential_moving_averages">
+    <column id="78" parent="43" name="exponential_moving_averages">
       <Position>4</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="65" parent="41" name="simple_moving_averages">
+    <column id="79" parent="43" name="simple_moving_averages">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="66" parent="41" name="macd">
+    <column id="80" parent="43" name="macd">
       <Position>6</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="67" parent="41" name="rsi">
+    <column id="81" parent="43" name="rsi">
       <Position>7</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="68" parent="41" name="created_at">
+    <column id="82" parent="43" name="created_at">
       <Position>8</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <column id="69" parent="41" name="updated_at">
+    <column id="83" parent="43" name="updated_at">
       <Position>9</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <column id="70" parent="41" name="deleted_at">
+    <column id="84" parent="43" name="deleted_at">
       <Position>10</Position>
       <DataType>timestamp with time zone|0s</DataType>
-      <StateNumber>17254</StateNumber>
+      <StateNumber>17980</StateNumber>
       <TypeId>1184</TypeId>
     </column>
-    <index id="71" parent="41" name="reports_pkey">
-      <ObjectId>26050</ObjectId>
-      <StateNumber>17254</StateNumber>
+    <index id="85" parent="43" name="reports_pkey">
+      <ObjectId>28619</ObjectId>
+      <StateNumber>17980</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
@@ -1265,58 +1407,58 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>1978</ClassIds>
     </index>
-    <key id="72" parent="41" name="reports_pkey">
-      <ObjectId>26051</ObjectId>
-      <StateNumber>17254</StateNumber>
+    <key id="86" parent="43" name="reports_pkey">
+      <ObjectId>28620</ObjectId>
+      <StateNumber>17980</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>reports_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="73" parent="41" name="fk_report_symbol">
-      <ObjectId>26052</ObjectId>
-      <StateNumber>17254</StateNumber>
+    <foreign-key id="87" parent="43" name="fk_report_symbol">
+      <ObjectId>28621</ObjectId>
+      <StateNumber>17980</StateNumber>
       <ColNames>symbol_id</ColNames>
-      <RefTableId>26005</RefTableId>
+      <RefTableId>28574</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>symbols</RefTableName>
       <RefKeyName>symbols_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <foreign-key id="74" parent="41" name="fk_report_history">
-      <ObjectId>26057</ObjectId>
-      <StateNumber>17254</StateNumber>
+    <foreign-key id="88" parent="43" name="fk_report_history">
+      <ObjectId>28626</ObjectId>
+      <StateNumber>17980</StateNumber>
       <ColNames>history_id</ColNames>
-      <RefTableId>26023</RefTableId>
+      <RefTableId>28592</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>histories</RefTableName>
       <RefKeyName>histories_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <column id="75" parent="42" name="id">
+    <column id="89" parent="44" name="id">
       <Position>1</Position>
       <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17257</StateNumber>
+      <StateNumber>17983</StateNumber>
       <DefaultExpression>nextval(&apos;analysis.signal_reports_id_seq&apos;::regclass)</DefaultExpression>
       <TypeId>23</TypeId>
     </column>
-    <column id="76" parent="42" name="signal_id">
+    <column id="90" parent="44" name="signal_id">
       <Position>2</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17257</StateNumber>
+      <StateNumber>17983</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="77" parent="42" name="report_id">
+    <column id="91" parent="44" name="report_id">
       <Position>3</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17257</StateNumber>
+      <StateNumber>17983</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <index id="78" parent="42" name="signal_reports_pkey">
-      <ObjectId>26101</ObjectId>
-      <StateNumber>17257</StateNumber>
+    <index id="92" parent="44" name="signal_reports_pkey">
+      <ObjectId>28670</ObjectId>
+      <StateNumber>17983</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
@@ -1324,87 +1466,87 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>1978</ClassIds>
     </index>
-    <key id="79" parent="42" name="signal_reports_pkey">
-      <ObjectId>26102</ObjectId>
-      <StateNumber>17257</StateNumber>
+    <key id="93" parent="44" name="signal_reports_pkey">
+      <ObjectId>28671</ObjectId>
+      <StateNumber>17983</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>signal_reports_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="80" parent="42" name="fk_signal_report_signal">
-      <ObjectId>26103</ObjectId>
-      <StateNumber>17257</StateNumber>
+    <foreign-key id="94" parent="44" name="fk_signal_report_signal">
+      <ObjectId>28672</ObjectId>
+      <StateNumber>17983</StateNumber>
       <ColNames>signal_id</ColNames>
-      <RefTableId>26077</RefTableId>
+      <RefTableId>28646</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>signals</RefTableName>
       <RefKeyName>signals_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <foreign-key id="81" parent="42" name="fk_signal_report_report">
-      <ObjectId>26108</ObjectId>
-      <StateNumber>17257</StateNumber>
+    <foreign-key id="95" parent="44" name="fk_signal_report_report">
+      <ObjectId>28677</ObjectId>
+      <StateNumber>17983</StateNumber>
       <ColNames>report_id</ColNames>
-      <RefTableId>26041</RefTableId>
+      <RefTableId>28610</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>reports</RefTableName>
       <RefKeyName>reports_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <column id="82" parent="43" name="id">
+    <column id="96" parent="45" name="id">
       <Position>1</Position>
       <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17256</StateNumber>
+      <StateNumber>17982</StateNumber>
       <DefaultExpression>nextval(&apos;analysis.signals_id_seq&apos;::regclass)</DefaultExpression>
       <TypeId>23</TypeId>
     </column>
-    <column id="83" parent="43" name="symbol_id">
+    <column id="97" parent="45" name="symbol_id">
       <Position>2</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17256</StateNumber>
+      <StateNumber>17982</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="84" parent="43" name="strategy_id">
+    <column id="98" parent="45" name="strategy_id">
       <Position>3</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17256</StateNumber>
+      <StateNumber>17982</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="85" parent="43" name="type">
+    <column id="99" parent="45" name="type">
       <Position>4</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17256</StateNumber>
+      <StateNumber>17982</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="86" parent="43" name="created_at">
+    <column id="100" parent="45" name="created_at">
       <Position>5</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17256</StateNumber>
+      <StateNumber>17982</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <column id="87" parent="43" name="updated_at">
+    <column id="101" parent="45" name="updated_at">
       <Position>6</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17256</StateNumber>
+      <StateNumber>17982</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <column id="88" parent="43" name="deleted_at">
+    <column id="102" parent="45" name="deleted_at">
       <Position>7</Position>
       <DataType>timestamp with time zone|0s</DataType>
-      <StateNumber>17256</StateNumber>
+      <StateNumber>17982</StateNumber>
       <TypeId>1184</TypeId>
     </column>
-    <index id="89" parent="43" name="signals_pkey">
-      <ObjectId>26083</ObjectId>
-      <StateNumber>17256</StateNumber>
+    <index id="103" parent="45" name="signals_pkey">
+      <ObjectId>28652</ObjectId>
+      <StateNumber>17982</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
@@ -1412,73 +1554,73 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>1978</ClassIds>
     </index>
-    <key id="90" parent="43" name="signals_pkey">
-      <ObjectId>26084</ObjectId>
-      <StateNumber>17256</StateNumber>
+    <key id="104" parent="45" name="signals_pkey">
+      <ObjectId>28653</ObjectId>
+      <StateNumber>17982</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>signals_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="91" parent="43" name="fk_signal_symbol">
-      <ObjectId>26085</ObjectId>
-      <StateNumber>17256</StateNumber>
+    <foreign-key id="105" parent="45" name="fk_signal_symbol">
+      <ObjectId>28654</ObjectId>
+      <StateNumber>17982</StateNumber>
       <ColNames>symbol_id</ColNames>
-      <RefTableId>26005</RefTableId>
+      <RefTableId>28574</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>symbols</RefTableName>
       <RefKeyName>symbols_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <foreign-key id="92" parent="43" name="fk_report_strategy">
-      <ObjectId>26090</ObjectId>
-      <StateNumber>17256</StateNumber>
+    <foreign-key id="106" parent="45" name="fk_report_strategy">
+      <ObjectId>28659</ObjectId>
+      <StateNumber>17982</StateNumber>
       <ColNames>strategy_id</ColNames>
-      <RefTableId>26064</RefTableId>
+      <RefTableId>28633</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>strategies</RefTableName>
       <RefKeyName>strategies_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
-    <column id="93" parent="44" name="id">
+    <column id="107" parent="46" name="id">
       <Position>1</Position>
       <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17255</StateNumber>
+      <StateNumber>17981</StateNumber>
       <DefaultExpression>nextval(&apos;analysis.strategies_id_seq&apos;::regclass)</DefaultExpression>
       <TypeId>23</TypeId>
     </column>
-    <column id="94" parent="44" name="name">
+    <column id="108" parent="46" name="name">
       <Position>2</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17255</StateNumber>
+      <StateNumber>17981</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="95" parent="44" name="created_at">
+    <column id="109" parent="46" name="created_at">
       <Position>3</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17255</StateNumber>
+      <StateNumber>17981</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <column id="96" parent="44" name="updated_at">
+    <column id="110" parent="46" name="updated_at">
       <Position>4</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17255</StateNumber>
+      <StateNumber>17981</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <column id="97" parent="44" name="deleted_at">
+    <column id="111" parent="46" name="deleted_at">
       <Position>5</Position>
       <DataType>timestamp with time zone|0s</DataType>
-      <StateNumber>17255</StateNumber>
+      <StateNumber>17981</StateNumber>
       <TypeId>1184</TypeId>
     </column>
-    <index id="98" parent="44" name="strategies_pkey">
-      <ObjectId>26073</ObjectId>
-      <StateNumber>17255</StateNumber>
+    <index id="112" parent="46" name="strategies_pkey">
+      <ObjectId>28642</ObjectId>
+      <StateNumber>17981</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
@@ -1486,95 +1628,102 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>1978</ClassIds>
     </index>
-    <key id="99" parent="44" name="strategies_pkey">
-      <ObjectId>26074</ObjectId>
-      <StateNumber>17255</StateNumber>
+    <key id="113" parent="46" name="strategies_pkey">
+      <ObjectId>28643</ObjectId>
+      <StateNumber>17981</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>strategies_pkey</UnderlyingIndexName>
     </key>
-    <column id="100" parent="45" name="id">
+    <column id="114" parent="47" name="id">
       <Position>1</Position>
       <DataType>integer|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
+      <StateNumber>17978</StateNumber>
       <DefaultExpression>nextval(&apos;analysis.symbols_id_seq&apos;::regclass)</DefaultExpression>
       <TypeId>23</TypeId>
     </column>
-    <column id="101" parent="45" name="currency_id">
+    <column id="115" parent="47" name="uuid">
       <Position>2</Position>
+      <DataType>uuid|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>17978</StateNumber>
+      <TypeId>2950</TypeId>
+    </column>
+    <column id="116" parent="47" name="currency_id">
+      <Position>3</Position>
       <DataType>bigint|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
+      <StateNumber>17978</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="102" parent="45" name="isin">
-      <Position>3</Position>
-      <DataType>text|0s</DataType>
-      <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
-      <TypeId>25</TypeId>
-    </column>
-    <column id="103" parent="45" name="identifier">
+    <column id="117" parent="47" name="isin">
       <Position>4</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
+      <StateNumber>17978</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="104" parent="45" name="name">
+    <column id="118" parent="47" name="identifier">
       <Position>5</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
+      <StateNumber>17978</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="105" parent="45" name="minimum_order_quantity">
+    <column id="119" parent="47" name="name">
       <Position>6</Position>
-      <DataType>real|0s</DataType>
-      <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
-      <TypeId>700</TypeId>
-    </column>
-    <column id="106" parent="45" name="market_name">
-      <Position>7</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
+      <StateNumber>17978</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="107" parent="45" name="market_hours_gmt">
+    <column id="120" parent="47" name="minimum_order_quantity">
+      <Position>7</Position>
+      <DataType>real|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>17978</StateNumber>
+      <TypeId>700</TypeId>
+    </column>
+    <column id="121" parent="47" name="market_name">
       <Position>8</Position>
       <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
+      <StateNumber>17978</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="108" parent="45" name="created_at">
+    <column id="122" parent="47" name="market_hours_gmt">
       <Position>9</Position>
-      <DataType>timestamp with time zone|0s</DataType>
+      <DataType>text|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
-      <DefaultExpression>now()</DefaultExpression>
-      <TypeId>1184</TypeId>
+      <StateNumber>17978</StateNumber>
+      <TypeId>25</TypeId>
     </column>
-    <column id="109" parent="45" name="updated_at">
+    <column id="123" parent="47" name="created_at">
       <Position>10</Position>
       <DataType>timestamp with time zone|0s</DataType>
       <NotNull>1</NotNull>
-      <StateNumber>17252</StateNumber>
+      <StateNumber>17978</StateNumber>
       <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <column id="110" parent="45" name="deleted_at">
+    <column id="124" parent="47" name="updated_at">
       <Position>11</Position>
       <DataType>timestamp with time zone|0s</DataType>
-      <StateNumber>17252</StateNumber>
+      <NotNull>1</NotNull>
+      <StateNumber>17978</StateNumber>
+      <DefaultExpression>now()</DefaultExpression>
       <TypeId>1184</TypeId>
     </column>
-    <index id="111" parent="45" name="symbols_pkey">
-      <ObjectId>26014</ObjectId>
-      <StateNumber>17252</StateNumber>
+    <column id="125" parent="47" name="deleted_at">
+      <Position>12</Position>
+      <DataType>timestamp with time zone|0s</DataType>
+      <StateNumber>17978</StateNumber>
+      <TypeId>1184</TypeId>
+    </column>
+    <index id="126" parent="47" name="symbols_pkey">
+      <ObjectId>28583</ObjectId>
+      <StateNumber>17978</StateNumber>
       <ColNames>id</ColNames>
       <Unique>1</Unique>
       <Primary>1</Primary>
@@ -1582,22 +1731,146 @@ UC/10
       <CollationIds>0</CollationIds>
       <ClassIds>1978</ClassIds>
     </index>
-    <key id="112" parent="45" name="symbols_pkey">
-      <ObjectId>26015</ObjectId>
-      <StateNumber>17252</StateNumber>
+    <key id="127" parent="47" name="symbols_pkey">
+      <ObjectId>28584</ObjectId>
+      <StateNumber>17978</StateNumber>
       <ColNames>id</ColNames>
       <Primary>1</Primary>
       <UnderlyingIndexName>symbols_pkey</UnderlyingIndexName>
     </key>
-    <foreign-key id="113" parent="45" name="fk_symbols_currency">
-      <ObjectId>26016</ObjectId>
-      <StateNumber>17252</StateNumber>
+    <foreign-key id="128" parent="47" name="fk_symbols_currency">
+      <ObjectId>28585</ObjectId>
+      <StateNumber>17978</StateNumber>
       <ColNames>currency_id</ColNames>
-      <RefTableId>25992</RefTableId>
+      <RefTableId>28561</RefTableId>
       <RefColPositions>1</RefColPositions>
       <RefTableName>currencies</RefTableName>
       <RefKeyName>currencies_pkey</RefKeyName>
       <RefColNames>id</RefColNames>
     </foreign-key>
+    <argument id="129" parent="48">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="130" parent="49">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="131" parent="50" name="namespace">
+      <Position>1</Position>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="132" parent="50" name="name">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </argument>
+    <argument id="133" parent="50">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="134" parent="51">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="135" parent="52" name="namespace">
+      <Position>1</Position>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="136" parent="52" name="name">
+      <Position>2</Position>
+      <DataType>text|0s</DataType>
+    </argument>
+    <argument id="137" parent="52">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="138" parent="53">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="139" parent="54">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="140" parent="55">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="141" parent="56">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <argument id="142" parent="57">
+      <ArgumentDirection>R</ArgumentDirection>
+      <DataType>uuid|0s</DataType>
+    </argument>
+    <column id="143" parent="59" name="id">
+      <Position>1</Position>
+      <DataType>integer|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>17985</StateNumber>
+      <DefaultExpression>nextval(&apos;&quot;user&quot;.users_id_seq&apos;::regclass)</DefaultExpression>
+      <TypeId>23</TypeId>
+    </column>
+    <column id="144" parent="59" name="uuid">
+      <Position>2</Position>
+      <DataType>uuid|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>17985</StateNumber>
+      <TypeId>2950</TypeId>
+    </column>
+    <column id="145" parent="59" name="username">
+      <Position>3</Position>
+      <DataType>text|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>17985</StateNumber>
+      <TypeId>25</TypeId>
+    </column>
+    <column id="146" parent="59" name="password">
+      <Position>4</Position>
+      <DataType>text|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>17985</StateNumber>
+      <TypeId>25</TypeId>
+    </column>
+    <column id="147" parent="59" name="created_at">
+      <Position>5</Position>
+      <DataType>timestamp with time zone|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>17985</StateNumber>
+      <DefaultExpression>now()</DefaultExpression>
+      <TypeId>1184</TypeId>
+    </column>
+    <column id="148" parent="59" name="updated_at">
+      <Position>6</Position>
+      <DataType>timestamp with time zone|0s</DataType>
+      <NotNull>1</NotNull>
+      <StateNumber>17985</StateNumber>
+      <DefaultExpression>now()</DefaultExpression>
+      <TypeId>1184</TypeId>
+    </column>
+    <column id="149" parent="59" name="deleted_at">
+      <Position>7</Position>
+      <DataType>timestamp with time zone|0s</DataType>
+      <StateNumber>17985</StateNumber>
+      <TypeId>1184</TypeId>
+    </column>
+    <index id="150" parent="59" name="users_pkey">
+      <ObjectId>28694</ObjectId>
+      <StateNumber>17985</StateNumber>
+      <ColNames>id</ColNames>
+      <Unique>1</Unique>
+      <Primary>1</Primary>
+      <AccessMethodId>403</AccessMethodId>
+      <CollationIds>0</CollationIds>
+      <ClassIds>1978</ClassIds>
+    </index>
+    <key id="151" parent="59" name="users_pkey">
+      <ObjectId>28695</ObjectId>
+      <StateNumber>17985</StateNumber>
+      <ColNames>id</ColNames>
+      <Primary>1</Primary>
+      <UnderlyingIndexName>users_pkey</UnderlyingIndexName>
+    </key>
   </database-model>
 </dataSource>

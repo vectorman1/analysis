@@ -5,11 +5,23 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"github.com/dystopia-systems/alaskalog"
+
+	"google.golang.org/grpc/grpclog"
+)
+
+type Environment int
+
+const (
+	Development Environment = iota
+	Production
 )
 
 type Config struct {
-	JwtSigningSecret     string `json:"jwt_signing_secret"`
+	SymbolsNamespace string `json:"symbols_namespace"`
+
+	Environment Environment `json:"environment"`
+
+	JwtSigningSecret string `json:"jwt_signing_secret"`
 
 	// gRPC grpc-server start parameters section
 	// gRPC is TCP port to listen by gRPC grpc-server
@@ -40,7 +52,7 @@ type Config struct {
 }
 
 func GetConfig() (*Config, error) {
-	alaskalog.Logger.Infoln("Getting configuration from Saruman...")
+	grpclog.Infoln("Getting configuration from Saruman...")
 
 	client := &http.Client{}
 	url := os.Getenv("SARUMAN_URL")
@@ -62,7 +74,7 @@ func GetConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	alaskalog.Logger.Infoln("Configuration loaded.")
+	grpclog.Infoln("Configuration loaded.")
 
 	return &config, nil
 }

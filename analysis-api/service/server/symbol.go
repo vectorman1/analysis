@@ -22,13 +22,18 @@ import (
 
 type SymbolsServiceServer struct {
 	rpcClient     *common.Rpc
+	rabbitClient  *common.RabbitClient
 	symbolService *service.SymbolsService
 	symbol_service.UnimplementedSymbolServiceServer
 }
 
-func NewSymbolsServiceServer(rpcClient *common.Rpc, symbolsService *service.SymbolsService) *SymbolsServiceServer {
+func NewSymbolsServiceServer(
+	rpcClient *common.Rpc,
+	rabbitClient *common.RabbitClient,
+	symbolsService *service.SymbolsService) *SymbolsServiceServer {
 	return &SymbolsServiceServer{
 		rpcClient:     rpcClient,
+		rabbitClient:  rabbitClient,
 		symbolService: symbolsService,
 	}
 }

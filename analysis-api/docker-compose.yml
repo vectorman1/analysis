@@ -1,0 +1,54 @@
+version: "3.3"
+
+services:
+  broker:
+    image: library/rabbitmq:3-management
+    container_name: analysis-broker
+    hostname: analysis-broker
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+    - 7073:5672
+    - 7072:15672
+
+  db:
+    image: library/postgres:13.2
+    restart: always
+    hostname: analysis-db
+    container_name: analysis_db
+    volumes:
+    - ./sql/create.sql:/docker-entrypoint-initdb.d/01_create.sql
+    - analysis-storage:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: harb
+      POSTGRES_PASSWORD: HueHue123
+      POSTGRES_DB: analysis
+
+  adminer:
+    depends_on:
+      - db
+    image: adminer
+    restart: always
+    ports:
+     - 7071:8080
+    hostname: analysis-adminer
+    container_name: analysis-adminer
+
+  api:
+    depends_on:
+      - db
+      - broker
+    restart: always
+    container_name: analysis-api
+    hostname: analysis-api
+    build:
+      context: .
+    ports:
+      - 7070:7070
+    environment:
+      SARUMAN_API_KEY: ${SARUMAN_API_KEY}
+      SARUMAN_URL: ${SARUMAN_URL}
+
+volumes:
+ analysis-storage:

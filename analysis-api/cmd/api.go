@@ -4,6 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/jackc/pgx"
+
+	"github.com/rs/zerolog"
 
 	"github.com/vectorman1/analysis/analysis-api/service"
 
@@ -54,21 +60,40 @@ func RunServer() error {
 		return fmt.Errorf("failed to connect to worker rpc server: %v", err)
 	}
 
-	symbolsRepository := db.NewSymbolRepository(dbConnPool)
-	currencyRepository := db.NewCurrencyRepository(dbConnPool)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	symbolsService := service.NewSymbolsService(symbolsRepository, currencyRepository)
+	go func() {
+		sig := <-sigs
+		fmt.Println(sig)
+	}()
 
-	symbolsServiceServer := server.NewSymbolsServiceServer(rpcClient, symbolsService)
-
-	grpcServer := grpc_server.NewGRPCServer(ctx, config.GRPCPort, symbolsServiceServer)
+	s, err := initializeServices(ctx, dbConnPool, rpcClient, config, sigs)
+	if err != nil {
+		return err
+	}
 
 	// run HTTP gateway
 	go func() {
 		_ = rest_server.RunServer(ctx, config.GRPCPort, config.HTTPPort)
 	}()
 
-	return grpcServer.Run()
+	return s.Run()
+}
+
+func initializeServices(ctx context.Context, dbConnPool *pgx.ConnPool, rpcClient *common.Rpc, config *common.Config, sigs chan os.Signal) (*grpc_server.GRPCServer, error) {
+	w := zerolog.NewConsoleWriter()
+
+	rabbit := common.NewRabbitClient("analysis-api", "analysis-worker", config.RabbitMqConn, sigs, zerolog.New(w))
+
+	symbolsRepository := db.NewSymbolRepository(dbConnPool)
+	currencyRepository := db.NewCurrencyRepository(dbConnPool)
+
+	symbolsService := service.NewSymbolsService(symbolsRepository, currencyRepository)
+
+	symbolsServiceServer := server.NewSymbolsServiceServer(rpcClient, rabbit, symbolsService)
+
+	return grpc_server.NewGRPCServer(ctx, config.GRPCPort, symbolsServiceServer), nil
 }
 
 func main() {

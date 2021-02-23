@@ -1,8 +1,8 @@
-mkdir -p analysis-api/certs
-mkdir -p analysis-worker/certs
-
 rm -r analysis-api/certs/*.pem
 rm -r analysis-worker/certs/*.pem
+
+mkdir -p analysis-api/certs
+mkdir -p analysis-worker/certs
 
 openssl req -x509 -newkey rsa:4096 -days 365 -nodes -keyout analysis-api/certs/ca-key.pem -out analysis-api/certs/ca-cert.pem -subj "/C=BG/ST=Sofia/L=Sofia/O=dystopia.systems/OU=N\/A/CN=*.dystopia.systems/emailAddress=master@dystopia.systems"
 

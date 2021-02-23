@@ -1,3 +1,2 @@
-generated/*
-certs/*
+certs/*.pem
 .idea/

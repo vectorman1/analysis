@@ -10,26 +10,25 @@ import (
 	"net"
 )
 
-
-
 func main() {
 	cfg, err := common.GetConfig()
 	if err != nil {
 		log.Fatalf("failed to get config: %v", err)
 	}
-
-	log.Println("Starting server...")
-	lis, err := net.Listen("tcp", ":6969")
-	if err != nil {
-		log.Fatalf("Failed to listen on port :6969: %v", err)
-	}
-	log.Println("listening on port :6969")
+	log.Println("loaded config")
 
 	tls, err := common.LoadTLSCredentials()
 	if err != nil {
 		log.Fatalf("failed to read TLS config: %v", err)
 	}
 	log.Println("loaded TLS config")
+
+	log.Println("Starting server...")
+	lis, err := net.Listen("tcp", "localhost:6969")
+	if err != nil {
+		log.Fatalf("Failed to listen on port :6969: %v", err)
+	}
+	log.Println("listening on port :6969")
 
 	s := grpc.NewServer(
 		grpc.Creds(tls))

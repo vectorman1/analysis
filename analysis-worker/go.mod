@@ -10,6 +10,8 @@ require (
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.2.0 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
+	github.com/rs/zerolog v1.20.0
+	github.com/streadway/amqp v1.0.0
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/text v0.3.3 // indirect

@@ -1,5 +1,5 @@
 .idea/
-
+.docker/
 generated/*
 certs/*
 api/swagger/v1/*

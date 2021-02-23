@@ -17,9 +17,10 @@ const (
 )
 
 type Config struct {
-	SymbolsNamespace string `json:"symbols_namespace"`
-
 	Environment Environment `json:"environment"`
+
+	// RabbitMQ connection URL
+	RabbitMqConn string `json:"rabbit_mq_conn"`
 
 	JwtSigningSecret string `json:"jwt_signing_secret"`
 

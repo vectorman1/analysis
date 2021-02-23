@@ -3,9 +3,8 @@ package common
 import (
 	"crypto/tls"
 	"github.com/vectorman1/analysis/analysis-worker/generated/proto_models"
-	"golang.org/x/net/html"
 	"google.golang.org/grpc/credentials"
-	"sync"
+	"net/http"
 )
 
 func ContainsSymbol(uuid string, arr []*proto_models.Symbol) (bool, *proto_models.Symbol) {
@@ -18,7 +17,18 @@ func ContainsSymbol(uuid string, arr []*proto_models.Symbol) (bool, *proto_model
 }
 
 func LoadTLSCredentials() (credentials.TransportCredentials, error) {
-	serverCert, err := tls.LoadX509KeyPair("certs/server-cert.pem", "certs/server-key.pem")
+	c := &SarumanClient{httpClient: &http.Client{}}
+	certPath, err := c.GetServerCert()
+	if err != nil {
+		return nil, err
+	}
+
+	keyPath, err := c.GetServerKey()
+	if err != nil {
+		return nil, err
+	}
+
+	serverCert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		return nil, err
 	}
@@ -29,27 +39,4 @@ func LoadTLSCredentials() (credentials.TransportCredentials, error) {
 	}
 
 	return credentials.NewTLS(config), nil
-}
-
-type WorkList struct {
-	m sync.Mutex
-	Output chan *html.Node
-	Input chan *html.Node
-}
-
-func (w *WorkList) Flatten(n *html.Node) {
-	stack := []*html.Node{n}
-
-	for {
-		if stack[len(stack)-1].NextSibling == nil && stack[len(stack)-1].FirstChild == nil {
-			stack = stack[:len(stack)-1]
-		}
-
-		if len(stack) == 0 {
-			break
-		}
-
-		stack[len(stack)-1] = n.FirstChild
-		stack = append(stack, n.NextSibling)
-	}
 }

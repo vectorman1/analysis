@@ -3,11 +3,12 @@ name: Release worker-prod
 on:
   push:
     branches: worker
+    
+  workflow_dispatch:
 
 jobs:
   push_to_registry:
   runs-on: ubuntu-latest
-    steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to DockerHub

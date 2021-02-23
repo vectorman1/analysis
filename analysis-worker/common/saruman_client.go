@@ -18,6 +18,7 @@ func (c *SarumanClient) GetServerCert() (string, error) {
 	url := "https://saruman-api.glamav.systems/api/v1/config/analysis-worker-cert/"
 	req, _ := http.NewRequest(http.MethodGet, url, nil)
 	req.Header.Set("Api-Key", os.Getenv("SARUMAN_API_KEY"))
+
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return "", err
